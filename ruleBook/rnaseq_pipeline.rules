@@ -26,6 +26,7 @@ if 'RNASeq' in config:
 		RNA_QC_ALL +=[subject+"/"+TIME+"/qc/"+subject+".RnaSeqQC.txt"]
 		TARGET_R   +=[subject+"/"+TIME+"/"+subject+"/db/"+subject+".rnaseq"]
 		TARGET_R   +=[subject+"/"+TIME+ACT_DIR+subject+".fusion.actionable.txt"]
+		TARGET_R   +=[subject+"/"+TIME+"/"+subject+"/db/"+subject+".fusion.txt"]
 		TARGET_R   +=[subject+"/"+TIME+ACT_DIR+subject+".rnaseq.actionable.txt"]
 		TARGET_R   +=[subject+"/"+TIME+"/qc/"+subject+".RnaSeqQC.txt"]
 		TARGET_R   +=[subject+"/"+TIME+"/qc/"+subject+".transcriptCoverage.png"]
@@ -205,4 +206,29 @@ rule Actionable_fusion:
 	
 	rm -rf {output}.tmp
 	#######################
+	"""
+
+#############
+# fusion_annotation
+#############
+rule fusion_annotation:
+	input:
+		"{subject}/{TIME}/Actionable/{subject}.fusion.actionable.txt"
+	output:
+		"{subject}/{TIME}/{subject}/db/{subject}.fusion.txt"
+	params:
+		rulename = "fusion_annotation",
+		work_dir =  WORK_DIR,
+		image_file = config["fusion_annotation"],
+		pfam_dir = config["pfam_path"],
+		genome_fasta = config["reference"],
+		batch    = config[config['host']]["job_default"],
+		FA_path	= config["FA_path"],
+		gencode_version = 37
+
+	shell: """
+	########################
+	module load singularity
+	singularity exec -e --bind {params.work_dir},{params.FA_path} {params.image_file} processFusionCase.sh -d {params.work_dir} -p {wildcards.subject} -c {TIME} -f {params.pfam_dir} -g {params.genome_fasta} -v {params.gencode_version}
+	########################
 	"""

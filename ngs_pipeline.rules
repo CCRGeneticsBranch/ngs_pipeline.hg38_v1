@@ -154,6 +154,8 @@ TARGET     += expand("{subject}/{TIME}/annotation/{subject}.Annotations.coding.r
 TARGET     += expand("{subject}/{TIME}/qc/{subject}.config.{NOW}.txt", TIME=TIME, subject=PATIENTS, NOW=NOW)
 TARGET     += expand("{subject}/{TIME}/igv/session_{subject}.xml", TIME=TIME, subject=PATIENTS)
 
+
+
 if len(config['sample_references']) > 0:
 	for Tumor in config['sample_references']:
 		for Normal in config['sample_references'][Tumor]:
@@ -161,6 +163,7 @@ if len(config['sample_references']) > 0:
 			NormalBam  = "{subject}/{TIME}/{sample}/{sample}.bwa.final".format(TIME=TIME, subject=SAMPLE_TO_SUBJECT[Normal], sample=Normal)
 			pairedCapture[Tumor] = config['sample_captures'][Tumor]
 			somaticPairs[Tumor] = [TumorBam + ".bam" , TumorBam + ".bam.bai", NormalBam + ".bam", NormalBam + ".bam.bai"]
+
 ###########################################################################
 # This is to make list of DB file list. (germline, variants, somatic, rnaseq)
 SUBJECT_ANNO = dict([(key, {}) for key in PATIENTS])
@@ -182,6 +185,7 @@ for subject in config['subject'].keys():
 	pair   = None
 	for sample in config['subject'][subject]:
 		if config['sample_type'][sample] == 'Tumor':
+#			TARGET +=[subject+"/"+TIME+"/"+sample+"/calls/"+sample+".MuTect2.raw.vcf.gz"]
 			tumor = 'yes'
 			if sample in config['sample_references'].keys():
 				pair  = 'yes'
@@ -189,11 +193,16 @@ for subject in config['subject'].keys():
 			normal = 'yes'
 	if pair =='yes':
 		DECIDE_GL[subject] = 'gl_only'
+#		TARGET +=[subject+"/"+TIME+"/"+sample+"/calls/"+sample+".MuTect2_TN.raw.vcf.gz"]
 	elif pair == None:
 		if tumor == None and normal =='yes':
 			DECIDE_GL[subject] = 'gl_only'
 		else:
 			ACT_TYPE +=[subject]
+#			TARGET +=[subject+"/"+TIME+"/"+sample+"/calls/"+sample+".MuTect2_PON.raw.vcf.gz"]
+
+
+
 ##########################################################################
 # To create lists to be filled in SUBJECT_ANNO
 for subject in config['subject']:
@@ -283,6 +292,7 @@ include: NGS_PIPELINE +"/ruleBook/HotSpot_Pileup.rules"
 include: NGS_PIPELINE +"/ruleBook/mutationBurden.rules"
 include: NGS_PIPELINE +"/ruleBook/AttachAnnotationFull.rules"
 include: NGS_PIPELINE +"/ruleBook/Arriba.rules"
+include: NGS_PIPELINE +"/ruleBook/TcellExtrect.rules"
 ###########################################################################
 # we have to do it this way as some samples may not have rna or tumor     #
 ###########################################################################
@@ -804,6 +814,9 @@ rule MuTect:
 	rm -rf {output.vcf}.vcf
 	#######################
 	"""
+
+
+
 ############
 #       Strelka
 ############
