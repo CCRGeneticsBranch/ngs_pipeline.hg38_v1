@@ -19,6 +19,6 @@ rule TcellExtrect:
 	###################
 	module load singularity
 	module load R
-	singularity exec -e --bind {params.work_dir},{params.ref} {params.image} runTCellExTRECT.sh -b {params.work_dir}{input.bam} -d {params.bed}
+	singularity exec -e --bind {params.work_dir},{params.ref} {params.image} runTCellExTRECT.sh -b {params.work_dir}/{input.bam} -d {params.bed}
 	##################
 	"""

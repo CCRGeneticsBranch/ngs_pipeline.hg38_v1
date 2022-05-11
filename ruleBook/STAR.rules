@@ -40,7 +40,7 @@ rule STARens:
 		"{subject}/{TIME}/{sample}/{sample}.star.bam",
 		"{subject}/{TIME}/{sample}/{sample}.star.bam.bai",
 		"{subject}/{TIME}/{sample}/{sample}Chimeric.out.junction",
-		"{subject}/{TIME}/{sample}/{sample}.ENS_transcriptome.bam",
+		temp("{subject}/{TIME}/{sample}/{sample}.ENS_transcriptome.bam"),
 	version:
 		config["STAR"]
 	params:
@@ -55,10 +55,11 @@ rule STARens:
 	module load STAR/{version}
 	cd ${{LOCAL}}/
 	ulimit -u 10240 -n 16384
-	STAR	--genomeDir {params.star_ens_ref} --readFilesIn {input.R[0]} {input.R[1]} --readFilesCommand zcat --outFileNamePrefix {wildcards.sample}_ENS --runThreadN ${{THREADS}} --outSAMunmapped Within --chimSegmentMin 12  --chimJunctionOverhangMin 12 --alignSJDBoverhangMin 10  --alignMatesGapMax 100000  --alignIntronMax 100000  --chimSegmentReadGapMax 3 --outFilterMismatchNmax 2 --outSAMtype BAM SortedByCoordinate --quantMode TranscriptomeSAM --outBAMsortingThreadN 6 --limitBAMsortRAM 61374258131
+	STAR	--genomeDir {params.star_ens_ref} --readFilesIn {input.R[0]} {input.R[1]} --readFilesCommand zcat --outFileNamePrefix {wildcards.sample}_ENS --runThreadN ${{THREADS}} --twopassMode Basic --outSAMunmapped Within --chimSegmentMin 12  --chimJunctionOverhangMin 12 --alignSJDBoverhangMin 10  --alignMatesGapMax 100000  --alignIntronMax 100000  --chimSegmentReadGapMax 3 --outFilterMismatchNmax 2 --outSAMtype BAM SortedByCoordinate --quantMode TranscriptomeSAM --outBAMsortingThreadN 6 --limitBAMsortRAM 61374258131
 	echo "STAR ENS mapping completed"
 	mv -f {wildcards.sample}_ENSChimeric.out.junction {params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}Chimeric.out.junction
 	mv -f {wildcards.sample}_ENSAligned.toTranscriptome.out.bam {params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}.ENS_transcriptome.bam
+	mv -f {wildcards.sample}_ENSSJ.out.tab {params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}_ENS_SJ.out.tab
 	module load picard/{params.picard}
 	java -Xmx${{MEM}}g -Djava.io.tmpdir=${{LOCAL}} -jar $PICARD_JAR AddOrReplaceReadGroups VALIDATION_STRINGENCY=SILENT INPUT={wildcards.sample}_ENSAligned.sortedByCoord.out.bam OUTPUT={params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}.star.bam SORT_ORDER=coordinate RGLB={wildcards.sample} RGPU={wildcards.sample} RGPL=ILLUMINA RGSM={wildcards.sample} RGCN=khanlab
 	module load samtools/{params.samtools}
