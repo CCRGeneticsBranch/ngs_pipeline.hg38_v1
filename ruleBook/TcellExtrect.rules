@@ -1,13 +1,13 @@
 # vim: syntax=python tabstop=4 expandtab
 # coding: utf-8
-TARGET     += ["{subject}/{TIME}/{sample}/TCellExTRECT/{sample}_TCellExTRECT_naive.pdf".format(TIME=TIME, subject=SAMPLE_TO_SUBJECT[s], sample=s) for s in SAMPLES]
+TARGET     += ["{subject}/{TIME}/{sample}/TCellExTRECT/{sample}_TCellExTRECT_naive.txt".format(TIME=TIME, subject=SAMPLE_TO_SUBJECT[s], sample=s) for s in SAMPLES]
 
 
 rule TcellExtrect:
 	input:
 		bam="{base}/{TIME}/{sample}/{sample}.bwa.final.bam",
 	output:
-		"{base}/{TIME}/{sample}/TCellExTRECT/{sample}_TCellExTRECT_naive.pdf",
+		"{base}/{TIME}/{sample}/TCellExTRECT/{sample}_TCellExTRECT_naive.txt",
 	params:
 		rulename = "TcellExtrect",
 		ref= config["design"],
