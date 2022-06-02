@@ -2,6 +2,10 @@
 
 suppressPackageStartupMessages(library("deconstructSigs"))
 suppressPackageStartupMessages(library("optparse"))
+suppressPackageStartupMessages(library("BSgenome.Hsapiens.UCSC.hg38"))
+hg38 <- getBSgenome("BSgenome.Hsapiens.UCSC.hg38")
+
+
 
 option_list <- list(
                 make_option("--input", help="input file name"),
@@ -23,7 +27,9 @@ sigs.input <- mut.to.sigs.input(mut.ref = mut_data,
 		chr = "Chr",
 		pos = "Start",
 		ref = "Ref",
+		bsg = hg38,
 		alt = "Alt")
+		
 cosmic = whichSignatures(tumor.ref = sigs.input,
 		signatures.ref = signatures.cosmic,
 		sample.id = sample,

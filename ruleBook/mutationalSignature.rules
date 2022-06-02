@@ -35,7 +35,7 @@ rule MutationalSignature:
 		tool   =NGS_PIPELINE + "/scripts/mutationSignature.R"
 	output: 
 		v1="{base}/{sample}.mutationalSignature.pdf"
-	version: config["version_R"]
+	version: config["version_R4"]
 	params:
 		rulename = "MutationalSignature",
 		batch    = config[config['host']]["job_default"],
