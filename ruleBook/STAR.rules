@@ -40,6 +40,7 @@ rule STARens:
 		"{subject}/{TIME}/{sample}/{sample}.star.bam",
 		"{subject}/{TIME}/{sample}/{sample}.star.bam.bai",
 		"{subject}/{TIME}/{sample}/{sample}Chimeric.out.junction",
+		"{subject}/{TIME}/{sample}/{sample}_ENS_SJ.out.tab.bed.gz",
 		temp("{subject}/{TIME}/{sample}/{sample}.ENS_transcriptome.bam"),
 	version:
 		config["STAR"]
@@ -49,7 +50,9 @@ rule STARens:
 		batch    = config[config['host']]['job_STAR_TPM'],
 		star_ens_ref  = config['star_2.5.3a_ens'],
 		home     = WORK_DIR,
-		picard   = config['picard']
+		picard   = config['picard'],
+		bedtools = config['bedtools'],
+		bcftools = config['bcftools']
 	shell: """
 	#########################################
 	module load STAR/{version}
@@ -63,7 +66,11 @@ rule STARens:
 	module load picard/{params.picard}
 	java -Xmx${{MEM}}g -Djava.io.tmpdir=${{LOCAL}} -jar $PICARD_JAR AddOrReplaceReadGroups VALIDATION_STRINGENCY=SILENT INPUT={wildcards.sample}_ENSAligned.sortedByCoord.out.bam OUTPUT={params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}.star.bam SORT_ORDER=coordinate RGLB={wildcards.sample} RGPU={wildcards.sample} RGPL=ILLUMINA RGSM={wildcards.sample} RGCN=khanlab
 	module load samtools/{params.samtools}
+	module load bedtools/{params.bedtools}
+	module load bcftools/{params.bcftools}
 	samtools index {params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}.star.bam
+	awk -F"\t" 'BEGIN{{OFS="\t"}}{{strand=($4==1)?"+":"-";annotated=($6==1)?"true":"false";if($5==0) motif="non-canonical"; if($5==1)motif="GT/AG";if($5==2)motif="CT/AC";if($5==3)motif="GC/AC";if($5==4)motif="CT/GC";if($5==5)motif="AT/AC";if($5==6)motif="GT/AT";print $1,$2,$3,"motif="motif";uniquely_mapped="$7";multi_mapped="$8";maximum_spliced_alignment_overhang="$9";annotated_junction="annotated,$7,strand}}' {params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}_ENS_SJ.out.tab |bedtools sort |bgzip > {params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}_ENS_SJ.out.tab.bed.gz
+	tabix -0 -p bed {params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}_ENS_SJ.out.tab.bed.gz
 	##########################################
 	"""
 
