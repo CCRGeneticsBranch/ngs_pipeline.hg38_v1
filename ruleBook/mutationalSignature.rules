@@ -73,7 +73,8 @@ rule Cosmic3Signature:
 	if [ -d "{wildcards.base}/input" ]; then rm -Rf {wildcards.base}/input ; fi
 	mkdir {wildcards.base}/input
 	cp {input.Files}  {wildcards.base}/input
-	python {params.tool} {wildcards.sample} {wildcards.base}/input
+#	python {params.tool} {wildcards.sample} {wildcards.base}/input
+	python /data/Clinomics/Tools/ngs_pipeline.hg38_v1/scripts/new_hg38.py {wildcards.sample} {wildcards.base}/input
 	cut -f1 {wildcards.base}/input/output/ID/{wildcards.sample}.ID83.all |awk -F ":" -v OFS="_" '{{print $2,$3,$1,$4}}'|sed  s'/Del/DEL/g'|sed s'/Ins/INS/g' |sed s'/__MutationType_/MutationType/g'|sed s'/_R_/_repeats_/g'|sed s'/_M_/_MH_/g'| sed s'/5/5+/g' |paste - {wildcards.base}/input/output/ID/{wildcards.sample}.ID83.all |cut -f1,3 > {wildcards.base}/input/output/ID/{wildcards.sample}.ID83.all_updatedcolumns
 	cd {wildcards.base}
 	Rscript /data/khanlab/projects/cosmic_signatures/deconstructsigs_indels.R {params.home}/{wildcards.base}/input/output/ID/{wildcards.sample}.ID83.all_updatedcolumns {wildcards.sample}.Indel83

@@ -1,6 +1,6 @@
 for subject in config['subject']:
 	for sample in config['subject'][subject]:
-		if config["sample_type"][sample] =='Tumor':
+		if (config["sample_type"][sample] == 'Tumor' or config['sample_type'][sample] == 'Xeno'):
 			if config['sample_captures'][sample] in config['cnvkit_ref']:
 				TARGET +=[subject+"/"+TIME+"/"+sample+"/cnvkit/"+sample+".cns"]	
 			else:

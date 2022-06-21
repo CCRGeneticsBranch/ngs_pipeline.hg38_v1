@@ -57,7 +57,7 @@
 	"Panel_List"		: ["clin.snv.v1", "clin.cnv.v2", "clin.snv.v2", "nbl.panel", "seqcapez.rms.v1", "nbl.somatic.panel", "panel_paed_v5_w5.1"],
 	"failed_exon_params": {
 		"wholegenome"		:{"Normal":"5","Tumor":"5"},
-		"seqcapez.hu.ex.v3"	:{"Normal":"20","Tumor":"20"},
+		"seqcapez.hu.ex.v3"	:{"Normal":"20","Tumor":"20","Xeno":"20"},
 		"seqcapez.hu.ex.utr.v1"	:{"Normal":"20","Tumor":"20"},
 		"clin.ex.v1"		:{"Normal":"10","Tumor":"20"},
 		"clin.snv.v1"		:{"Normal":"20","Tumor":"50"},

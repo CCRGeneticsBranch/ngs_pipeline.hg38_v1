@@ -184,7 +184,8 @@ for subject in config['subject'].keys():
 	tumor  = None
 	pair   = None
 	for sample in config['subject'][subject]:
-		if config['sample_type'][sample] == 'Tumor':
+#		if config['sample_type'][sample] == 'Tumor':
+		if(config['sample_type'][sample] == 'Tumor' or config['sample_type'][sample] == 'Xeno'):
 #			TARGET +=[subject+"/"+TIME+"/"+sample+"/calls/"+sample+".MuTect2.raw.vcf.gz"]
 			tumor = 'yes'
 			if sample in config['sample_references'].keys():
