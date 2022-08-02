@@ -45,15 +45,15 @@ rule PILE4SEQ:
 		interval= lambda wildcards: config['target_intervals'][config['sample_captures'][wildcards.sample]],
 		seq=NGS_PIPELINE+ "/scripts/sequenza-utils.py"
 	output: temp("{base}/{TIME}/{sample}/{sample}.mpileup.gz")
-	version: config["samtools_old"]
+	envmodules:
+		config["samtools_old"],
+		config["bedtools"]
 	params:
 		rulename  = "PILE4SEQ",
 		batch     = config[config['host']]["job_PILE4SEQ"],
 	shell: """
 	#######################
-	module load bedtools/2.25.0
 	slopBed -i {input.interval} -g {input.genome} -b 200 |mergeBed -i - >${{LOCAL}}/Region.bed	
-	module load samtools/{version}
 	samtools mpileup -Q 20 -q 30 -L ${{LOCAL}}/Region.bed  -f {input.ref} {input.bam}| gzip > {output}
 	#######################
 	"""
@@ -80,7 +80,10 @@ rule Sequenza:
 		"{subject}/{TIME}/{Tumor}/sequenza/{Tumor}/{Tumor}_sequenza_log.txt",
 		all=temp("{subject}/{TIME}/{Tumor}/sequenza/{Tumor}.seqz.gz"),
 		bin=temp("{subject}/{TIME}/{Tumor}/sequenza/{Tumor}.seqz_small.gz")
-	version: config['sequenza']
+	envmodules:
+		config['sequenza'],
+		config["version_R"],
+		config["samtools_new"]
 	params:
 		rulename = "Sequenza",
 		R	 = config["version_R"],
@@ -88,9 +91,6 @@ rule Sequenza:
 		samtools = config["samtools_new"],
 	shell: """
 	#######################
-	module load sequenza-utils/{version}
-	module load samtools/{params.samtools}
-	module load R/{params.R}
 	sequenza-utils bam2seqz --normal {input.R[2]} --tumor {input.R[0]}  --fasta {input.ref}  -gc {input.gc_ref}  -o {output.all}
 	sequenza-utils seqz_binning -w 50 -s {output.all}  | gzip > {output.bin} 
 	cd {wildcards.subject}/{wildcards.TIME}/{wildcards.Tumor}/sequenza/
@@ -106,14 +106,13 @@ rule Sequenza_geneAnnot:
 		geneList=config["annovar_data"]+config["geneList"]
 	output:
 		"{subject}/{TIME}/{Tumor}/sequenza/{Tumor}.txt"
-	version: config["bedtools"]
+	envmodules: config["bedtools"]
 	params:
 		rulename = "Sequenza_geneAnnot",
 		batch    = config[config['host']]['job_default']
 	shell: """
 	#######################
 	set +eo pipefail
-        module load bedtools/{version}
         sed -e 's/"//g' {input.file} |sed -e 's/chromosome/#chromosome/' | bedtools intersect  -wa -a {input.interval} -b - |grep -v NOTFOUND |sed -e 's/___/\\t/g'| cut -f 1-4| bedtools expand -c 4 >{output}.temp
         sed -e 's/"//g' {input.file} |sed -e 's/chromosome/#chromosome/' |head -1 >{output}.temp1
         sed -i 's/end.pos\\tBf/end.pos\\tGene\\tBf/g' {output}.temp1

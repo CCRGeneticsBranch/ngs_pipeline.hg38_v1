@@ -10,18 +10,16 @@ rule RNASeQC_star:
 		gtf=config["rnaseqc_star"],
 		ref=config["reference"]	,	
 	output: "{base}/{TIME}/{sample}/qc/rnaseqc/report.html"
-	version: config["rnaseqc"],
+	envmodules:
+		config["rnaseqc"],
+		config['version_R'],
+		config["picard"],
 	params:
 		rulename="RNASeQC_star",
-		R	=config['version_R'],
-		picard	=config["picard"],
 		batch	= config[config['host']]["job_STAR"],
 		home	  = WORK_DIR,
 	shell: """
 	###########################
-	module load rnaseqc/{version}
-	module load  picard/{params.picard}
-	module load R/{params.R}
 	if [ -d "{params.home}/{wildcards.base}/{TIME}/{wildcards.sample}/qc/rnaseqc" ]; then rm -Rf {params.home}/{wildcards.base}/{TIME}/{wildcards.sample}/qc/rnaseqc; fi
 	java -Xmx${{MEM}}g  -Djava.io.tmpdir=${{LOCAL}} -jar $RNASEQCPATH/RNA-SeQC_v1.1.8.jar   -r {input.ref} -rRNA {input.rna_interval} -o {wildcards.base}/{TIME}/{wildcards.sample}/qc/rnaseqc  -s "{wildcards.sample}|{input.bam}|{wildcards.sample}" -t {input.gtf}	
 	###########################
@@ -42,20 +40,19 @@ rule STARens:
 		"{subject}/{TIME}/{sample}/{sample}Chimeric.out.junction",
 		"{subject}/{TIME}/{sample}/{sample}_ENS_SJ.out.tab.bed.gz",
 		temp("{subject}/{TIME}/{sample}/{sample}.ENS_transcriptome.bam"),
-	version:
-		config["STAR"]
+	envmodules:
+		config["STAR"],
+		config['samtools'],
+		config['picard'],
+		config['bedtools'],
+		config['bcftools']
 	params:
 		rulename = "STARens",
-		samtools = config['samtools'],
 		batch    = config[config['host']]['job_STAR_TPM'],
 		star_ens_ref  = config['star_2.5.3a_ens'],
 		home     = WORK_DIR,
-		picard   = config['picard'],
-		bedtools = config['bedtools'],
-		bcftools = config['bcftools']
 	shell: """
 	#########################################
-	module load STAR/{version}
 	cd ${{LOCAL}}/
 	ulimit -u 10240 -n 16384
 	STAR	--genomeDir {params.star_ens_ref} --readFilesIn {input.R[0]} {input.R[1]} --readFilesCommand zcat --outFileNamePrefix {wildcards.sample}_ENS --runThreadN ${{THREADS}} --twopassMode Basic --outSAMunmapped Within --chimSegmentMin 12  --chimJunctionOverhangMin 12 --alignSJDBoverhangMin 10  --alignMatesGapMax 100000  --alignIntronMax 100000  --chimSegmentReadGapMax 3 --outFilterMismatchNmax 2 --outSAMtype BAM SortedByCoordinate --quantMode TranscriptomeSAM --outBAMsortingThreadN 6 --limitBAMsortRAM 61374258131
@@ -63,11 +60,7 @@ rule STARens:
 	mv -f {wildcards.sample}_ENSChimeric.out.junction {params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}Chimeric.out.junction
 	mv -f {wildcards.sample}_ENSAligned.toTranscriptome.out.bam {params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}.ENS_transcriptome.bam
 	mv -f {wildcards.sample}_ENSSJ.out.tab {params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}_ENS_SJ.out.tab
-	module load picard/{params.picard}
 	java -Xmx${{MEM}}g -Djava.io.tmpdir=${{LOCAL}} -jar $PICARD_JAR AddOrReplaceReadGroups VALIDATION_STRINGENCY=SILENT INPUT={wildcards.sample}_ENSAligned.sortedByCoord.out.bam OUTPUT={params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}.star.bam SORT_ORDER=coordinate RGLB={wildcards.sample} RGPU={wildcards.sample} RGPL=ILLUMINA RGSM={wildcards.sample} RGCN=khanlab
-	module load samtools/{params.samtools}
-	module load bedtools/{params.bedtools}
-	module load bcftools/{params.bcftools}
 	samtools index {params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}.star.bam
 	awk -F"\t" 'BEGIN{{OFS="\t"}}{{strand=($4==1)?"+":"-";annotated=($6==1)?"true":"false";if($5==0) motif="non-canonical"; if($5==1)motif="GT/AG";if($5==2)motif="CT/AC";if($5==3)motif="GC/AC";if($5==4)motif="CT/GC";if($5==5)motif="AT/AC";if($5==6)motif="GT/AT";print $1,$2,$3,"motif="motif";uniquely_mapped="$7";multi_mapped="$8";maximum_spliced_alignment_overhang="$9";annotated_junction="annotated,$7,strand}}' {params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}_ENS_SJ.out.tab |bedtools sort |bgzip > {params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}_ENS_SJ.out.tab.bed.gz
 	tabix -0 -p bed {params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}_ENS_SJ.out.tab.bed.gz
@@ -83,20 +76,19 @@ rule STAR_Fusion:
 	output:
 		"{subject}/{TIME}/{sample}/STAR-Fusion_results/star-fusion.fusion_predictions.tsv",
 		"{subject}/{TIME}/{sample}/fusion/STAR-fusion.txt",
-	version: config["STAR-Fusion"],
+	envmodules:
+		config["STAR-Fusion"],
+		config['samtools'],
+		config['perl'],
+		config["STAR"]
+
 	params:
 		rulename   =  "STAR_Fusion",
-		samtools   =  config['samtools'],
 		batch	   = config[config['host']]['job_STAR_TPM'],
 		SF_ref     = config['STAR_Fusion_ENS'],
-		STAR	   = config["STAR"],
 		home	   = WORK_DIR,
 	shell: """
 	##########################
-	module load STAR-Fusion/{version}
-	module load samtools/{params.samtools}
-	module load perl
-	module load STAR/{params.STAR}
 	if [ -d "{params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/STAR-Fusion_results" ]; then rm -Rf {params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/STAR-Fusion_results; fi
 	STAR-Fusion --genome_lib_dir {params.SF_ref} -J {params.home}/{input.Junction} --CPU ${{THREADS}} --output_dir {params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/STAR-Fusion_results
 	cp {params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/STAR-Fusion_results/star-fusion.fusion_predictions.tsv {params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/fusion/STAR-fusion.txt
@@ -115,7 +107,7 @@ rule RSEMens:
 	output:
 		"{subject}/{TIME}/{sample}/RSEM_ENS/{sample}.rsem_ENS.genes.results",
 		"{subject}/{TIME}/{sample}/RSEM_ENS/{sample}.rsem_ENS.isoforms.results",
-	version: config["rsem"],
+	envmodules: config["rsem"],
 	params:
 		rulename = "RSEMens",
 		ref      = config['rsem_ens_ref'],
@@ -123,7 +115,6 @@ rule RSEMens:
 		home     = WORK_DIR,
 	shell: """
 	################################
-	module load rsem/{version}
 	cd ${{LOCAL}}/
 	rsem-calculate-expression --no-bam-output --paired-end -p ${{THREADS}}  --estimate-rspd  --bam {params.home}/{input.bam} {params.ref} {wildcards.sample}_ENS
 	echo "gene and transcript level counts generated"

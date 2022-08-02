@@ -20,17 +20,16 @@ rule mixcr_RNASeq:
         mixcr="{base}/{TIME}/{sample}/mixcr/{sample}.clones.RNA.txt",
         vdjtools="{base}/{TIME}/{sample}/mixcr/convert.{sample}.clones.RNA.txt",
         summary="{base}/{TIME}/{sample}/mixcr/{sample}.summarystats.RNA.txt"
-    version: 
-        config['mixcr']
+    envmodules: 
+        config['mixcr'],
+	config['java8_11'],
+	config['version_R'],
+	config['vdjtools']
     params:
         rulename = "mixcr_RNASeq",
-        java     = config['java8_11'],
-        R        = config['version_R'],
         batch    = config[config['host']]['job_mixcr'],
     shell: """
     #######################
-    module load java/{params.java}
-    module load mixcr/{version}
 
     if [ -d "{wildcards.base}/{wildcards.TIME}/{wildcards.sample}/mixcr" ]; then rm -f {wildcards.base}/{wildcards.TIME}/{wildcards.sample}/mixcr/*; fi
     cd {wildcards.base}/{wildcards.TIME}/{wildcards.sample}/mixcr/
@@ -51,8 +50,6 @@ rule mixcr_RNASeq:
     mixcr exportClones -c IGK {wildcards.sample}.clones.clns {wildcards.sample}.clones.IGK.txt
     mixcr exportClones -c IGL {wildcards.sample}.clones.clns {wildcards.sample}.clones.IGL.txt
 
-    module load vdjtools/1.1.10
-    module load R/{params.R}
     java -Djava.io.tmpdir=${{LOCAL}} -jar $VDJ_JAR Convert -S mixcr {wildcards.sample}.clones.RNA.txt convert
     java -Djava.io.tmpdir=${{LOCAL}} -jar $VDJ_JAR Convert -S mixcr {wildcards.sample}.clones.TRA.txt convert
     java -Djava.io.tmpdir=${{LOCAL}} -jar $VDJ_JAR Convert -S mixcr {wildcards.sample}.clones.TRB.txt convert
@@ -88,8 +85,11 @@ rule mixcr_TCRSeq:
         mixcr="{base}/{TIME}/{sample}/mixcr/{sample}.clones.TCR.txt",
         vdjtools="{base}/{TIME}/{sample}/mixcr/convert.{sample}.clones.TCR.txt",
         summary="{base}/{TIME}/{sample}/mixcr/{sample}.summarystats.TCR.txt"
-    version: 
-        config['mixcr']
+    envmodules: 
+        config['mixcr'],
+        config['java8_11'],
+        config['version_R'],
+        config['vdjtools']
     params:
         rulename = "mixcr_TCRSeq",
         java     = config['java8_11'],
@@ -97,8 +97,6 @@ rule mixcr_TCRSeq:
         batch    = config[config['host']]['job_mixcr']
     shell: """
     #######################
-    module load java/{params.java}
-    module load mixcr/{version}
 
     if [ -d "{wildcards.base}/{wildcards.TIME}/{wildcards.sample}/mixcr" ]; then rm -f {wildcards.base}/{wildcards.TIME}/{wildcards.sample}/mixcr/*; fi
     cd {wildcards.base}/{wildcards.TIME}/{wildcards.sample}/mixcr/
@@ -113,8 +111,6 @@ rule mixcr_TCRSeq:
 
     mixcr exportClones -c TRB {wildcards.sample}.clones.clns {wildcards.sample}.clones.TRB.txt
 
-    module load vdjtools/1.1.10
-    module load R/{params.R}
     java -Djava.io.tmpdir=${{LOCAL}} -jar $VDJ_JAR Convert -S mixcr {wildcards.sample}.clones.TCR.txt convert
     java -Djava.io.tmpdir=${{LOCAL}} -jar $VDJ_JAR Convert -S mixcr {wildcards.sample}.clones.TRA.txt convert
     java -Djava.io.tmpdir=${{LOCAL}} -jar $VDJ_JAR Convert -S mixcr {wildcards.sample}.clones.TRB.txt convert

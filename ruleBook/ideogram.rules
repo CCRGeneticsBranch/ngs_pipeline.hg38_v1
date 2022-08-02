@@ -11,7 +11,9 @@ rule Ideogram:
 	output: 
 		v1="{subject}/{TIME}/{Tumor}/copyNumber/{Tumor}.CN.raw.png",
 		v2="{subject}/{TIME}/{Tumor}/copyNumber/{Tumor}.CN.png",
-	version: config["version_R"]
+	envmodules:
+		config["version_R"],
+		config['bedtools'],
 	params:
 		rulename = "Ideogram",
 		bedtools = config['bedtools'],
@@ -19,8 +21,6 @@ rule Ideogram:
 		genome   = config["reference"].replace('.fasta', '.genome'),
 	shell: """
 	#######################
-	module load R/{version}
-	module load bedtools/{params.bedtools}
 	grep -v Failed {input.cnFile} |awk '{{OFS="\\t"}};{{print $1,$2,$3,$7,"-"}}' >${{LOCAL}}/{wildcards.Tumor}
 
 	echo -e "CHR\\tPOS\\tP"  >${{LOCAL}}/{wildcards.Tumor}.temp

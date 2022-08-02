@@ -3,29 +3,24 @@ rule arriba:
   input: R=lambda wildcards: FQ[wildcards.sample]
   output:
     "{subject}/{TIME}/{sample}/fusion/arriba-fusion.txt"
-  version:
-    config["STAR-Arriba"]
+  envmodules:
+    config["STAR-Arriba"],
+    config['samtools_new'],
+    config['Arriba'],
+    config['version_R']
   params:
     rulename = "arriba",
     batch    = config[config['host']]['job_STAR_TPM'],
     star_gencode_ref  = config['star_2.7.6a_arriba'],
     home     = WORK_DIR,
-    arriba   = config['Arriba'],
-    samtools = config['samtools_new'],
     ref      = config['reference'],
     gtf      = config['UCSC_star'],
     blcklst  = config['Arriba_blacklist'],
     draw     = config['draw_fusions'],
     cyto     = config['cytobands'],
     prot     = config['proteinDomains'],
-    R        = config['version_R'],
 
   shell: """
-
-    module load STAR/{version}
-    module load arriba/{params.arriba}
-    module load samtools/{params.samtools}
-    module load R/{params.R}
 
     cd ${{LOCAL}}/
     if [ -d "{params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/arriba_out" ]; then rm -Rf {params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/arriba_out; fi

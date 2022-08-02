@@ -35,13 +35,12 @@ rule MutationalSignature:
 		tool   =NGS_PIPELINE + "/scripts/mutationSignature.R"
 	output: 
 		v1="{base}/{sample}.mutationalSignature.pdf"
-	version: config["version_R4"]
+	envmodules: config["version_R4"]
 	params:
 		rulename = "MutationalSignature",
 		batch    = config[config['host']]["job_default"],
 	shell: """
 	#######################
-	module load R/{version}
 	awk '{{OFS="\\t"}}{{print $1,$2,$4,$5,"{wildcards.sample}"}}' {input.File} |sed -e '1s/{wildcards.sample}/Sample/g'>{output.v1}.tmp
 	{input.tool} --input {output.v1}.tmp --sample {wildcards.sample} --output {output.v1}
 	rm -rf {output.v1}.tmp
@@ -59,7 +58,9 @@ rule Cosmic3Signature:
 		indel ="{base}/{sample}.Indel83_cosmic_v3.pdf",
 		SBS ="{base}/{sample}.SBS96_cosmic_v3.pdf",
 		DBS ="{base}/{sample}.DBS78_cosmic_v3.pdf"
-	version: config["version_R"]
+	envmodules:
+		config["version_R4"],
+		config["python3"],
 	params:
 		rulename = "Cosmic3Signature",
 		batch    = config[config['host']]["job_default"],
@@ -68,8 +69,6 @@ rule Cosmic3Signature:
 		home     = WORK_DIR,
 	shell: """
 	#######################
-	module load R/4.0.5 
-	module load python/{params.python}
 	if [ -d "{wildcards.base}/input" ]; then rm -Rf {wildcards.base}/input ; fi
 	mkdir {wildcards.base}/input
 	cp {input.Files}  {wildcards.base}/input

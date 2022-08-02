@@ -35,17 +35,17 @@ rule seq2HLA:
 	input:  R=lambda wildcards: FQ[wildcards.sample],
 	output:
 		"{base}/{TIME}/{sample}/HLA/seq2HLA/{sample}-ClassI.HLAgenotype4digits"
+	envmodules:
+		config["version_python"],
+		config['version_R'],
+		config['bowtie']
 	params:
 		rulename= "seq2HLA",
-		python  = config["version_python"],
-		R	= config['version_R'],
-		bowtie	= config['bowtie'],
 		batch	= config[config['host']]["job_hla"],
 		HLA	= config['HLA'],
 		script = config['app_home'] + "/seq2HLA/seq2HLA.py"
 	shell: """
 	#######################
-	module load bowtie/{params.bowtie} python/{params.python} R/{params.R}
 	python {params.script} {params.HLA}/seq2HLA/ -1 {input.R[0]} -2 {input.R[1]}  -p ${{THREADS}} -r {wildcards.base}/{wildcards.TIME}/{wildcards.sample}/HLA/seq2HLA/{wildcards.sample}
 	#######################
 	"""
@@ -59,7 +59,7 @@ rule HLAminer:
 		rulename="HLAminer",
 		batch	=config[config['host']]["job_hlaminer"],
 		HLA	=config['HLA'],
-        workdir=WORK_DIR,
+		workdir=WORK_DIR,
 		location=NGS_PIPELINE,
 		script_home = config['app_home'] + "/HLAminer_v1.3.1/bin/"
 	shell: """
@@ -102,17 +102,19 @@ rule VEP:
 		"{base}/{TIME}/{sample}/calls/{sample}.MuTect.raw.vcf",
 		HLA  =lambda wildcards: HLA[wildcards.sample],
 		tool =NGS_PIPELINE + "/scripts/consensusSomaticVCF.pl",
+	envmodules:
+		config["vcftools"],
+		config['VEP'],
+		"perl"
 	output: 
 		vcf	="{base}/{TIME}/{sample}/NeoAntigen/{sample}.final.vcf",
 	params:
 		rulename = "VEP",
-		VEP	 = config['VEP'],
 		merge=NGS_PIPELINE + "/scripts/consensusHLA.pl",
 		normal	 = lambda wildcards: config['sample_references'][wildcards.sample][0],
 		batch    = config[config['host']]["job_VEP"],
 	shell: """
 	#######################
-	module load vcftools VEP/{params.VEP} perl
 	perl {input.tool} -vcf {wildcards.base}/{wildcards.TIME}/{wildcards.sample}/calls/{wildcards.sample}.strelka.indels.raw.vcf,{wildcards.base}/{wildcards.TIME}/{wildcards.sample}/calls/{wildcards.sample}.strelka.snvs.raw.vcf,{wildcards.base}/{wildcards.TIME}/{wildcards.sample}/calls/{wildcards.sample}.MuTect.raw.vcf -order {params.normal},{wildcards.sample} -filter REJECT |vcf-subset -u -c {wildcards.sample} >{output.vcf}.tmp
 	variant_effect_predictor.pl -i {output.vcf}.tmp --plugin Downstream --plugin Wildtype --terms SO --offline --cache --dir_cache $VEPCACHEDIR --assembly GRCh37 --output_file {output.vcf} --vcf --force_overwrite
 	rm -rf {output.vcf}.tmp
@@ -131,14 +133,16 @@ checkpoint split_vcf:
 		vcf = "{base}/{TIME}/{sample}/NeoAntigen/{sample}.final.vcf",
 	output:
 		out = directory("{base}/{TIME}/{sample}/NeoAntigen/split"),
+	envmodules:
+		config["VEP"],
+		config["vcftools"],
+		config["bcftools"]
 	params:
 		rulename = "split_vcf",
-		VEP	 = config['VEP'],
 		tool     = NGS_PIPELINE + "/scripts/split_vcf.py",
 		batch    = config[config['host']]["job_VEP"],
 	shell: """
 	########################
-	module load vcftools bcftools
 	mkdir -p {wildcards.base}/{wildcards.TIME}/{wildcards.sample}/NeoAntigen/split
 
 		python {params.tool} {input.vcf} {wildcards.base}/{wildcards.TIME}/{wildcards.sample}/NeoAntigen/split/
@@ -153,20 +157,19 @@ rule pVACseq:
 		vcf = "{base}/{TIME}/{sample}/NeoAntigen/split/{sample}_{i}.vcf",
 	output:
 		"{base}/{TIME}/{sample}/NeoAntigen/split/{sample}_{i}/MHC_Class_I/{sample}_{i}.filtered.tsv"
-	version: config['pvacseq']
+	envmodules:
+		config['pvacseq'],
+		config["version_python"],
 	params:
 		rulename = "pVACseq",
-		python   = config["version_python"],
 		normal   = lambda wildcards: config['sample_references'][wildcards.sample][0],
 		tool 	 = NGS_PIPELINE + "/scripts/pvacseq.sh",
 		IEDB	 = config['IEDB'],
-		version	= config['pvacseq'],
 		batch    = config[config['host']]["job_pvacseq"],
 		host	 = config['host']
 	shell: """
 	#######################
 	
-	module load pvactools/{version} 
 	mkdir -p {wildcards.base}/{wildcards.TIME}/{wildcards.sample}/NeoAntigen/split/{wildcards.sample}_{wildcards.i}
 	{params.tool} {wildcards.base}/{wildcards.TIME}/{params.normal}/HLA/{params.normal}.Calls.txt {input.vcf} {wildcards.sample}_{wildcards.i} {wildcards.base}/{wildcards.TIME}/{wildcards.sample}/NeoAntigen/split/{wildcards.sample}_{wildcards.i} {params.version}
 
@@ -192,10 +195,9 @@ rule Merge_pvacseq:
 		aggregate_input
 	output:
 		"{base}/{TIME}/{sample}/NeoAntigen/{sample}.final.txt"
-	version: config['pvacseq']
+	envmodules: config['pvacseq']
 	params:
 		rulename = "Merge_pvacseq",
-		python   = config["version_python"],
 		tool     = NGS_PIPELINE + "/scripts/process_pVACSeq.pl",
 		batch    = config[config['host']]["job_pvacseq"],
 		host	= config['host']
