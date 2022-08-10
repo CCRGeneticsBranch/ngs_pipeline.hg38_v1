@@ -353,9 +353,14 @@ rule Khanlab_Pipeline:
 	shell: """
 	#######################
 	rm -rf ngs_pipeline_{SAMPLESHEET}_{NOW}.rnaseq.done
-	find {PATIENTS} log -group $USER -exec chgrp -f {params.group} {{}} \;
-	find {PATIENTS} log \( -type f -user $USER -exec chmod g+rw {{}} \; \) , \( -type d -user $USER -exec chmod g+rwx {{}} \; \)
+#	find {PATIENTS} log -group $USER -exec chgrp -f {params.group} {{}} \;
+#	find {PATIENTS} log \( -type f -user $USER -exec chmod g+rw {{}} \; \) , \( -type d -user $USER -exec chmod g+rwx {{}} \; \)
 	export LC_ALL=C
+	chgrp -f {params.group} {PATIENTS}
+	chgrp -f {params.group} log
+	chmod g+rw -R {PATIENTS}
+	chmod g+rw -R log
+
 	
 	for sub in {params.subs}
         do
