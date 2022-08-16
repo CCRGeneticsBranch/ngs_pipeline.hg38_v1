@@ -20,7 +20,19 @@ RNA-sequencing has wide variety of applications. The power of sequencing RNA lie
 
 **FusionCatcher** searches for somatic novel/known fusion genes, translocations and/or chimeras in RNA-seq data. FusionCatcher achieves competitive detection rates and real-time PCR validation rates in RNA-sequencing data from tumor cells.
 
-## 4. Variant Analysis
+## 4. Somatics Variant Analysis
 
-## 5. Annovar - Annotation
+We are using GATK3 for RNAseq analysis. **Picard** is used to addReadGroups and mark duplicates to the STAR bam followed by GATK analysis.
+
+**SplitNTrim** is an RNAseq-specific step: reads with N operators in the CIGAR strings (which denote the presence of a splice junction) are split into component reads and trimmed to remove any overhangs into splice junctions, which reduces the occurrence of artifacts. At this step, we also reassign mapping qualities from 255 (assigned by STAR) to 60 which is more meaningful for GATK tools
+
+**RealignTargetCreator**
+
+**IndelRealigner** local realignment is performed around indels, because the algorithms that are used in the initial mapping step tend to produce various types of artifacts. For example, reads that align on the edges of indels often get mapped with mismatching bases that might look like evidence for SNPs, but are actually mapping artifacts. The realignment process identifies the most consistent placement of the reads relative to the indel in order to clean up these artifacts. It occurs in two steps: first the program identifies intervals that need to be realigned, then in the second step it determines the optimal consensus sequence and performs the actual realignment of reads. This step is considered optional for RNAseq.
+
+**Base Quality Score Recalibration** Finally, base quality scores are recalibrated, because the variant calling algorithms rely heavily on the quality scores assigned to the individual base calls in each sequence read. These scores are per-base estimates of error emitted by the sequencing machines. Unfortunately the scores produced by the machines are subject to various sources of systematic error, leading to over- or under-estimated base quality scores in the data. Base quality score recalibration is a process in which we apply machine learning to model these errors empirically and adjust the quality scores accordingly. This yields more accurate base qualities, which in turn improves the accuracy of the variant calls. The base recalibration process involves two key steps: first the program builds a model of covariation based on the data and a set of known variants, then it adjusts the base quality scores in the data based on the model.
+
+## 5. Germline variant analysis
+
+## 6. Annovar - Annotation
 
