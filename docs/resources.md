@@ -7,7 +7,7 @@ Hg38 references used in this pipeline are downloaded from [gencode](https://www.
 | **files**      | **Species**   | **Annotation Version**    | **Notes**                                               |
 | ------------   |-------------- | --------------------------| --------------------------------------------------------|
 | Genome fasta   | Homo sapiens  | [Gencode release v39](https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_39/GRCh38.primary_assembly.genome.fa.gz) | 92 sequences of [ERCC spike](https://assets.thermofisher.com/TFS-Assets/LSG/manuals/ERCC92.zip) in are added to the fasta file |
-| Annotation GTF |  Homo sapiens | [Gencode release v39](https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_39/gencode.v39.primary_assembly.annotation.gtf.gz) | 2 sequences of [ERCC spike](https://assets.thermofisher.com/TFS-Assets/LSG/manuals/ERCC92.zip) in are appended to the gtf file |
+| Annotation GTF |  Homo sapiens | [Gencode release v39](https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_39/gencode.v39.primary_assembly.annotation.gtf.gz) | 92 sequences of [ERCC spike](https://assets.thermofisher.com/TFS-Assets/LSG/manuals/ERCC92.zip) in are appended to the gtf file |
 
 
 

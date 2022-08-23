@@ -18,7 +18,7 @@ We follow tool suggested best practices for all the data processing. The pipelin
 
 [**RNAseQC**](https://software.broadinstitute.org/cancer/cga/rnaseqc_run) The RNA-SeQC package has functions for computing various quality metrics, such as alignment quality, duplication rates, GC bias, rRNA content, coverage continuity, covered alignment regions, transcript count, and 3'/5' bias. It produces Read counts, coverage, correlation quality control metrics, and is also suitable for use with scRNA-seq data sets.
 
-**Flagstat**
+**Flagstat** does a full pass through the input file to calculate and print statistics to stdout and Provides  counts for each of 13 categories based primarily on bit flags in the FLAG field. Each  category  in  the  output  is  broken down into QC pass and QC fail.  In the default output format, these are presented as "#PASS + #FAIL" followed by  a  description  of  the category.
 
 **Circos Plots**
 
@@ -30,7 +30,7 @@ We follow tool suggested best practices for all the data processing. The pipelin
 
 ### 2.2 Data Processing
 
-This comprehensive pipeline is capable of processing different sample libraries together and seperately. These scalable ngs workflows involve RNA-seq sample processing,Tumor-Normal processing, and Tumor only processing. 
+This comprehensive pipeline is capable of processing different sample libraries together and seperately. This scalable ngs workflows involve RNA-seq sample processing,Tumor-Normal processing, and Tumor only processing. 
 
 
 7. In Development
