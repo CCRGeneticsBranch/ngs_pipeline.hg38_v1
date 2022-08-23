@@ -20,7 +20,7 @@ RNA-sequencing has wide variety of applications. The power of sequencing RNA lie
 
 **FusionCatcher** searches for somatic novel/known fusion genes, translocations and/or chimeras in RNA-seq data. FusionCatcher achieves competitive detection rates and real-time PCR validation rates in RNA-sequencing data from tumor cells.
 
-## 4. Somatics Variant Analysis
+## 4. Variant Analysis
 
 We are using GATK3 for RNAseq analysis. **Picard** is used to addReadGroups and mark duplicates to the STAR bam followed by GATK analysis.
 
