@@ -35,13 +35,12 @@ rule MutationalSignature:
 		tool   =NGS_PIPELINE + "/scripts/mutationSignature.R"
 	output: 
 		v1="{base}/{sample}.mutationalSignature.pdf"
-	version: config["version_R4"]
+	envmodules: config["version_R4"]
 	params:
 		rulename = "MutationalSignature",
 		batch    = config[config['host']]["job_default"],
 	shell: """
 	#######################
-	module load R/{version}
 	awk '{{OFS="\\t"}}{{print $1,$2,$4,$5,"{wildcards.sample}"}}' {input.File} |sed -e '1s/{wildcards.sample}/Sample/g'>{output.v1}.tmp
 	{input.tool} --input {output.v1}.tmp --sample {wildcards.sample} --output {output.v1}
 	rm -rf {output.v1}.tmp
@@ -51,6 +50,39 @@ rule MutationalSignature:
 ################
 #	Cosmic3 Signature
 ################
+<<<<<<< HEAD
+rule Cosmic3Signature:
+	input:
+		Files = lambda wildcards: UNION_SOM[wildcards.sample]
+#		expand("{subject}/{TIME}/{base1}/calls/{base}.snpEff.txt",
+	output:
+		indel ="{base}/{sample}.Indel83_cosmic_v3.pdf",
+		SBS ="{base}/{sample}.SBS96_cosmic_v3.pdf",
+		DBS ="{base}/{sample}.DBS78_cosmic_v3.pdf"
+	envmodules:
+		config["version_R4"],
+		config["python3"],
+	params:
+		rulename = "Cosmic3Signature",
+		batch    = config[config['host']]["job_default"],
+		python =  config["python3"],
+		tool   =NGS_PIPELINE + "/scripts/new.py",
+		home     = WORK_DIR,
+	shell: """
+	#######################
+	if [ -d "{wildcards.base}/input" ]; then rm -Rf {wildcards.base}/input ; fi
+	mkdir {wildcards.base}/input
+	cp {input.Files}  {wildcards.base}/input
+#	python {params.tool} {wildcards.sample} {wildcards.base}/input
+	python /data/Clinomics/Tools/ngs_pipeline.hg38_v1/scripts/new_hg38.py {wildcards.sample} {wildcards.base}/input
+	cut -f1 {wildcards.base}/input/output/ID/{wildcards.sample}.ID83.all |awk -F ":" -v OFS="_" '{{print $2,$3,$1,$4}}'|sed  s'/Del/DEL/g'|sed s'/Ins/INS/g' |sed s'/__MutationType_/MutationType/g'|sed s'/_R_/_repeats_/g'|sed s'/_M_/_MH_/g'| sed s'/5/5+/g' |paste - {wildcards.base}/input/output/ID/{wildcards.sample}.ID83.all |cut -f1,3 > {wildcards.base}/input/output/ID/{wildcards.sample}.ID83.all_updatedcolumns
+	cd {wildcards.base}
+	Rscript /data/khanlab/projects/cosmic_signatures/deconstructsigs_indels.R {params.home}/{wildcards.base}/input/output/ID/{wildcards.sample}.ID83.all_updatedcolumns {wildcards.sample}.Indel83
+	Rscript	/data/khanlab/projects/cosmic_signatures/deconstructsigs_sbs.R {params.home}/{wildcards.base}/input/output/SBS/{wildcards.sample}.SBS96.all {wildcards.sample}.SBS96
+	Rscript /data/khanlab/projects/cosmic_signatures/deconstructsigs_dbs.R {params.home}/{wildcards.base}/input/output/DBS/{wildcards.sample}.DBS78.all {wildcards.sample}.DBS78
+	#######################
+	"""	
+=======
 #rule Cosmic3Signature:
 #	input:
 #		Files = lambda wildcards: UNION_SOM[wildcards.sample]
@@ -82,3 +114,4 @@ rule MutationalSignature:
 #	Rscript /data/khanlab/projects/cosmic_signatures/deconstructsigs_dbs.R {params.home}/{wildcards.base}/input/output/DBS/{wildcards.sample}.DBS78.all {wildcards.sample}.DBS78
 #	#######################
 #	"""	
+>>>>>>> 76c8517738a5289a20415257eb033174494df061

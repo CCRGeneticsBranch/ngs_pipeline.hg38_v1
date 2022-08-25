@@ -109,7 +109,7 @@ if (`hostname` =~ /cn/ or `hostname` =~ /biowulf.nih.gov/){
 		export CLUSTER_CONF=$cluster_conf
 		SNAKEFILE=$NGS_PIPELINE/ngs_pipeline.rules
 		SAM_CONFIG=$sheet
-		snakemake --directory \$WORK_DIR --snakefile \$SNAKEFILE --configfile \$SAM_CONFIG --dryrun -p -r --ri -R RNASeq  $dag_cmd
+		snakemake --directory \$WORK_DIR --snakefile \$SNAKEFILE --configfile \$SAM_CONFIG --use-envmodules --dryrun -p -r --ri -R RNASeq  $dag_cmd
 		rm -rf $workDir/ngs_pipeline_${sheet_name}_$NOW.csv
 		)";
 		print "$cmd\n";
@@ -149,7 +149,7 @@ elsif(`hostname` =~ /tghighmem/ or `hostname` =~ /tgcompute/ or `hostname` =~ /l
 	else{
 		`mkdir -p "$workDir/log/"`;
 		`chmod g+rw "$workDir/log/"`;
-		$jobid = `sbatchT -e $workDir/log/ngs-pipeline.%j.e -o $workDir/log/ngs-pipeline.%j.o --export=time=$mode,ngs=$NGS_PIPELINE,dataDir=$dataDir,workDir=$workDir,sheet=$sheet,runTime=$NOW --cpus-per-task=1 --mem=4G --partition=batch --time=08-00:00:00 $NGS_PIPELINE/submit_snakemake.sh`;
+		$jobid = `sbatchT -e $workDir/log/ngs-pipeline.%j.e -o $workDir/log/ngs-pipeline.%j.o --use-envmodules --export=time=$mode,ngs=$NGS_PIPELINE,dataDir=$dataDir,workDir=$workDir,sheet=$sheet,runTime=$NOW --cpus-per-task=1 --mem=4G --partition=batch --time=08-00:00:00 $NGS_PIPELINE/submit_snakemake.sh`;
 	}
 }
 else{

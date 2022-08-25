@@ -25,14 +25,13 @@ rule BAM2TDF:
 		bam_bai="{base}/{TIME}/{sample}/{sample}.{aligner}.bam.bai"
 	output:
 		"{base}/{TIME}/{sample}/{sample}.{aligner}.bam.tdf"
-	version: config['igvtools']
+	envmodules: config['igvtools']
 	params:
 		rulename        = "BAM2TDF",
 		ref             = config["reference"],
 		batch           = config[config['host']]['job_igvtools']
 	shell:  """
 	#######################
-	module load igvtools/{version}
 
 	cd ${{LOCAL}}
 	java -Xmx${{MEM}}g -Djava.io.tmpdir=${{LOCAL}} -jar $IGVTOOLSHOME/igvtools.jar count {WORK_DIR}/{input.bam} {WORK_DIR}/{output} {params.ref}

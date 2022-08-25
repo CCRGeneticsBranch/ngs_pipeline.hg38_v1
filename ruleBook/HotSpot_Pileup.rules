@@ -32,7 +32,7 @@ rule HotSpotPileup:
 		ref=config["reference"],
 	output:
 		out="{subject}/{TIME}/{sample}/calls/{sample}.{caller}.pileup.txt"
-	version:
+	envmodules:
 		config["samtools"]
 	params:
 		rulename  = "HotSpotPileup",
@@ -42,7 +42,6 @@ rule HotSpotPileup:
 		script	  = NGS_PIPELINE + "/scripts/hotspot_mpileup.pl"
 	shell: """
 	#######################
-	module load samtools/{version}
 	{params.script} {input.hotspot} {input.ref} {input.bam} {wildcards.sample} {params.type} {params.capture} >{output.out}
 	#######################
 	"""

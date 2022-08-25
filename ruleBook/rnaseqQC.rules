@@ -9,15 +9,14 @@ rule RNASeqQC:
 	output:
 		table="{base}/{TIME}/{sample}/qc/{sample}.RnaSeqMetrics.txt",
 		pdf="{base}/{TIME}/{sample}/qc/{sample}.RnaSeqMetrics.pdf",
-	version: config["picard"]
+	envmodules:
+		config["picard"],
+		config['version_R'],
 	params:
 		rulename  = "RNASeqQC",
-		R	  = config['version_R'],
 		batch     = config[config['host']]["job_RNASeqQC"],
 	shell: """
 	#######################
-	module load picard/{version}
-	module load R/{params.R}
 	java -Xmx${{MEM}}g -Djava.io.tmpdir=${{LOCAL}} -jar $PICARD_JAR CollectRnaSeqMetrics STRAND_SPECIFICITY=NONE VALIDATION_STRINGENCY=SILENT REF_FLAT={input.ref_flat} RIBOSOMAL_INTERVALS={input.rna_interval} INPUT={input.bam} OUTPUT={output.table} CHART_OUTPUT={output.pdf}
 	#######################
 	"""
@@ -27,7 +26,7 @@ rule RNASeqQC1:
 		bai="{base}/{TIME}/{sample}/{sample}.star.bam.bai",
 	output:
 		table="{base}/{TIME}/{sample}/qc/{sample}.AlignmentSummaryMetrics.txt",
-	version: config["picard"]
+	envmodules: config["picard"]
 	params:
 		rulename  ="RNASeqQC1",
 		batch     =config[config['host']]["job_RNASeqQC1"],
@@ -35,7 +34,6 @@ rule RNASeqQC1:
 #		ref       =config['Bowtie2Index'].replace('genome', 'genome.fa')
 	shell: """
 	#######################
-	module load picard/{version}
 	java -Xmx${{MEM}}g -Djava.io.tmpdir=${{LOCAL}} -jar $PICARD_JAR CollectAlignmentSummaryMetrics VALIDATION_STRINGENCY=SILENT REFERENCE_SEQUENCE={params.ref} INPUT={input.bam} OUTPUT={output.table} ADAPTER_SEQUENCE=null
 	#######################
 	"""
@@ -62,13 +60,12 @@ rule RNASeqQC_2:
 	output: 
 		txt="{subject}/{TIME}/qc/{subject}.RnaSeqQC.txt",
 		plot="{subject}/{TIME}/qc/{subject}.transcriptCoverage.png"
-	version: config['version_R']
+	envmodules: config['version_R']
 	params:
 		rulename  = "RNASeqQC_2",
 		batch     = config[config['host']]["job_covplot"]
 	shell: """
 	#######################
-	module load R/{version}
 	export LC_ALL=C
 	cat {input.files} |sort |uniq |sed -e '/^$/d'>{output.txt}
 	list=`echo {input.files}|sed -e 's/RnaSeqQC/RnaSeqMetrics/g'`

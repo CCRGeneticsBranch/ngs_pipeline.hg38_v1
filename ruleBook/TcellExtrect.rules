@@ -8,6 +8,9 @@ rule TcellExtrect:
 		bam="{base}/{TIME}/{sample}/{sample}.bwa.final.bam",
 	output:
 		"{base}/{TIME}/{sample}/TCellExTRECT/{sample}_TCellExTRECT_naive.txt",
+	envmodules:
+		config["version_R"],
+		config["singularity"]
 	params:
 		rulename = "TcellExtrect",
 		ref= config["design"],
@@ -17,8 +20,6 @@ rule TcellExtrect:
 		batch    = config[config['host']]["job_mutect"],
 	shell: """
 	###################
-	module load singularity
-	module load R
 	singularity exec -e --bind {params.work_dir},{params.ref} {params.image} runTCellExTRECT.sh -b {params.work_dir}/{input.bam} -d {params.bed} -g hg38
 	##################
 	"""

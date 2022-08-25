@@ -97,7 +97,7 @@ rule Annovar_Gene:
 		file="AnnotationInput.anno",
 	output:
 		"AnnotationInput.gene"
-	version: config["annovar"]
+	envmodules: config["annovar"]
 	params:
 		rulename   = "Annovar_Gene",
 		batch      = config[config['host']]["job_annovar"],
@@ -105,7 +105,6 @@ rule Annovar_Gene:
 		build      = config["build"],
 	shell: """
 	#######################
-	module load annovar/{version}
 	table_annovar.pl {input.file} {params.RefData} -buildver {params.build} -out {input.file}.gene -remove -protocol refGene,cytoBand,snp138,1000g2014oct_all,1000g2014oct_eur,1000g2014oct_afr,1000g2014oct_amr,1000g2014oct_eas,1000g2014oct_sas,esp6500_all,esp6500_ea,esp6500_aa,exac03nontcga,exac03,cg69,nci60 -operation g,r,f,f,f,f,f,f,f,f,f,f,f,f,f,f -nastring "-1" --argument "-hgvs",,,,,,,,,,,,,,,
 	mv {input.file}.gene.{params.build}_multianno.txt {output}
 	sed -i '1s/\./_/g' {output}
@@ -121,7 +120,7 @@ rule Annovar_Clinseq:
 		file="AnnotationInput.anno",
 		clinseq=config["annovar_data"]+config["annot_clinseq"]
 	output: "AnnotationInput.clinseq"
-	version: config["annovar"]
+	envmodules: config["annovar"]
 	params:
 		rulename   = "Annovar_Clinseq",
 		batch      = config[config['host']]["job_annovar"],
@@ -129,7 +128,6 @@ rule Annovar_Clinseq:
 		build      = config["build"],
 	shell: """
 	#######################
-	module load annovar/{version}
 	annotate_variation.pl {input.file} {params.RefData} -buildver {params.build} -otherinfo -filter -dbtype generic -genericdbfile `basename {input.clinseq}`
 	awk '{{OFS="\\t"}};{{print $3,$4,$5,$6,$7,$2}}' {input.file}.{params.build}_generic_dropped |sed -e 's/,/\\t/g' >{output}
 	head -1 {input.clinseq} >>{output}
@@ -147,7 +145,7 @@ rule Annovar_CADD:
 		cadd_indel=config["annovar_data"]+config["annot_caddind"]
 	output:
 		"AnnotationInput.cadd",
-	version: config["annovar"]
+	envmodules: config["annovar"]
 	params:
 		rulename   = "Annovar_CADD",
 		batch      = config[config['host']]["job_annovar"],
@@ -155,7 +153,6 @@ rule Annovar_CADD:
 		build      = config["build"],
 	shell: """
 	#######################
-	module load annovar/{version}
 	annotate_variation.pl {input.file} {params.RefData} -buildver {params.build} -otherinfo -filter -dbtype cadd
 	annotate_variation.pl {input.file}.{params.build}_cadd_filtered {params.RefData} -buildver {params.build} -otherinfo -filter -dbtype caddindel
 	cut -f 2-7 {input.file}.{params.build}_cadd_dropped {input.file}.{params.build}_cadd_filtered.{params.build}_caddindel_dropped |sed -e 's/,/\\t/g' |awk '{{OFS="\\t"}};{{print $3,$4,$5,$6,$7,$1,$2}}' >{output}
@@ -174,7 +171,7 @@ rule Annovar_COSMIC:
 		cosmic=config["annovar_data"]+config["annot_cosmic"]
 	output:
 		"AnnotationInput.cosmic",
-	version: config["annovar"]
+	envmodules: config["annovar"]
 	params:
 		rulename   = "Annovar_COSMIC",
 		batch      = config[config['host']]["job_annovar"],
@@ -182,7 +179,6 @@ rule Annovar_COSMIC:
 		build      = config["build"],
 	shell: """
 	#######################
-	module load annovar/{version}
 	table_annovar.pl {input.file} {params.RefData} -buildver {params.build} --dot2underline -out {input.file}.cosmic -remove -protocol cosmic78 -operation f -nastring "NA" 
 	mv {input.file}.cosmic.{params.build}_multianno.txt {output}
 	rm -rf {input.file}.cosmic.invalid_input
@@ -198,7 +194,7 @@ rule Annovar_PCG:
 		pcg=config["annovar_data"]+config["annot_pcg"]
 	output:
 		"AnnotationInput.pcg",
-	version: config["annovar"]
+	envmodules: config["annovar"]
 	params:
 		rulename   = "Annovar_PCG",
 		batch      = config[config['host']]["job_annovar"],
@@ -206,7 +202,6 @@ rule Annovar_PCG:
 		build      = config["build"],
 	shell: """
 	#######################
-	module load annovar/{version}
 	annotate_variation.pl {input.file} {params.RefData} -buildver {params.build} -otherinfo --outfile {input.file}.pcg -filter -dbtype generic -genericdbfile `basename {input.pcg}`
 	awk -F "\\t" '{{OFS="\\t"}};{{print $3,$4,$5,$6,$7,$2}}' {input.file}.pcg.{params.build}_generic_dropped |sed -e 's/,/\\t/g' >{output}
 	head -1 {input.pcg} >>{output}
@@ -238,7 +233,7 @@ rule Annot_Custom:
 		candl  ="AnnotationInput.candl",
 		tcc    ="AnnotationInput.tcc",
 		civic  ="AnnotationInput.civic"	
-	version: config["annovar"]
+	envmodules: config["annovar"]
 	params:
 		rulename   = "Annot_Custom",
 		batch      = config[config['host']]["job_annovar"],
@@ -246,7 +241,6 @@ rule Annot_Custom:
 		build      = config["build"],
 	shell: """
 	#######################
-	module load annovar/{version}
 	{input.tool} {input.clinvar}	{input.file} >{output.clinvar}
 	{input.tool} {input.hgmd}	{input.file} >{output.hgmd}
 	{input.tool} {input.match}	{input.file} >{output.match}
@@ -266,18 +260,17 @@ rule SIFT:
 		tool	=NGS_PIPELINE + "/scripts/ParseSIFT.pl"
 	output:
 		"AnnotationInput.sift.out"
-	version: config["SIFT"]
+	envmodules:
+		config["SIFT"],
+		config["version_python"]
 	resources: SIFT=1
 	params:
 		rulename   = "SIFT",
-		python     = config["version_python"],
 		batch      = config[config['host']]["job_SIFT"],
 		build      = config["SIFTbuild"]
 	shell: """
 	#######################
 	if [ -s {input.sift} ]; then
-		module load python/{params.python}
-		module load SIFT/{version}
 		DIR=`pwd`
 		cd ${{DIR}}/`dirname {input.sift}`
 		FILE=`basename {input.sift}`

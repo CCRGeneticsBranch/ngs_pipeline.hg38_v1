@@ -15,13 +15,12 @@ rule cnvkitPooled:
 		interval= lambda wildcards: config['cnvkit_ref'][config['sample_captures'][wildcards.sample]],
 	output:
 		"{base}/{TIME}/{sample}/cnvkit/{sample}.cns"
-	version: config["cnvkit"]
+	envmodules: config["cnvkit"]
 	params:
 		rulename  = "cnvkitPooled",
 		batch     = config[config['host']]["job_cnvkit"],
 	shell: """
 	#######################
-	module load cnvkit/{version}
 	cnvkit.py batch -p ${{THREADS}} {input.bam} --reference {input.interval} --output-dir {wildcards.base}/{wildcards.TIME}/{wildcards.sample}/cnvkit/
 	mv {wildcards.base}/{wildcards.TIME}/{wildcards.sample}/cnvkit/{wildcards.sample}.bwa.final.cns {wildcards.base}/{wildcards.TIME}/{wildcards.sample}/cnvkit/{wildcards.sample}.cns
 	mv {wildcards.base}/{wildcards.TIME}/{wildcards.sample}/cnvkit/{wildcards.sample}.bwa.final.cnr {wildcards.base}/{wildcards.TIME}/{wildcards.sample}/cnvkit/{wildcards.sample}.cnr
@@ -40,13 +39,12 @@ rule cnvkitPaired:
 		interval=lambda wildcards: config['target_intervals'][pairedCapture[wildcards.sample]]
 	output:
 		"{base}/{TIME}/{sample}/cnvkit/{sample}.cnr"
-	version: config["cnvkit"]
+	envmodules: config["cnvkit"]
 	params:
 		rulename  = "cnvkitPaired",
 		batch     = config[config['host']]["job_cnvkit"],
 	shell: """
 	#######################
-	module load cnvkit/{version}
 	cnvkit.py batch -p ${{THREADS}} --access {input.access} --fasta  {input.ref} --targets {input.interval} {input[0]} --output-dir {wildcards.base}/{wildcards.TIME}/{wildcards.sample}/cnvkit/ --normal {input[2]} 
 	mv {wildcards.base}/{wildcards.TIME}/{wildcards.sample}/cnvkit/{wildcards.sample}.bwa.final.cns {wildcards.base}/{wildcards.TIME}/{wildcards.sample}/cnvkit/{wildcards.sample}.cns
 	mv {wildcards.base}/{wildcards.TIME}/{wildcards.sample}/cnvkit/{wildcards.sample}.bwa.final.cnr {wildcards.base}/{wildcards.TIME}/{wildcards.sample}/cnvkit/{wildcards.sample}.cnr
