@@ -30,7 +30,10 @@ We follow tool suggested best practices for all the data processing. The pipelin
 
 ### 2.2 Data Processing
 
-This comprehensive pipeline is capable of processing different sample libraries together and seperately. This scalable ngs workflows involve RNA-seq sample processing,Tumor-Normal processing, and Tumor only processing. 
+This comprehensive pipeline is capable of processing different sample libraries together and seperately. This scalable ngs workflows involves 
+ 1. RNA-seq sample processing
+ 2. Tumor-Normal processing and 
+ 3. Tumor only processing. 
 
 
 7. In Development

@@ -96,8 +96,9 @@ markdown_extensions:
 # Page Tree
 nav:
   - ngs_pipeline : index.md
-  - RNAseq Analysis : RNAseq/rnaseq.md
-  - Exome Tumor-Normal Analysis : exomeTN/exomeTN.md
   - Getting Started : overview.md
   - Usage : usage.md
+  - RNAseq Analysis : RNAseq/rnaseq.md
+  - Exome Tumor-Normal Analysis : exomeTN/exomeTN.md
+  - Tumor only Analysis : Tumor_only/tumor.md
   - Resources : resources.md
