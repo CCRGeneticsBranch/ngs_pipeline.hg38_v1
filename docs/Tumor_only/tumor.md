@@ -1,0 +1,2 @@
+Tumor only sequecing is usually done when a matching normal is not available. This pipeline can handle such smaples and run soamtic Variant analysis and thourough QC.
+![Tumor_only_workflow](Tumor_only.png)
