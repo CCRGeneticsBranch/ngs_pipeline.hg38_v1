@@ -171,7 +171,7 @@ rule pVACseq:
 	#######################
 	
 	mkdir -p {wildcards.base}/{wildcards.TIME}/{wildcards.sample}/NeoAntigen/split/{wildcards.sample}_{wildcards.i}
-	{params.tool} {wildcards.base}/{wildcards.TIME}/{params.normal}/HLA/{params.normal}.Calls.txt {input.vcf} {wildcards.sample}_{wildcards.i} {wildcards.base}/{wildcards.TIME}/{wildcards.sample}/NeoAntigen/split/{wildcards.sample}_{wildcards.i} {params.version}
+	{params.tool} {wildcards.base}/{wildcards.TIME}/{params.normal}/HLA/{params.normal}.Calls.txt {input.vcf} {wildcards.sample}_{wildcards.i} {wildcards.base}/{wildcards.TIME}/{wildcards.sample}/NeoAntigen/split/{wildcards.sample}_{wildcards.i}
 
 	if [ -f {output} ]
 	then

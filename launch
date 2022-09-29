@@ -1,6 +1,6 @@
 #!/usr/bin/perl
-use warnings;
-use strict;
+use warnings;                
+#use strict;
 use Getopt::Long;
 use Pod::Usage;
 use Time::Piece;
@@ -11,6 +11,10 @@ my $mode = 'd';
 my $time='20160415';
 my $dataDir="";
 my $sheet="samplesheet.json";
+
+
+
+
 if (`dirname $0` =~ /^\./){
 	$NGS_PIPELINE = `pwd`;
 	chomp $NGS_PIPELINE;
@@ -27,9 +31,12 @@ elsif(`hostname` =~ /tghighmem/ or `hostname` =~ /tgcompute/ or `hostname` =~ /l
 	$dataDir="/projects/Clinomics/DATA/";
 }
 
+
+
 my $workDir="";
 my $dryrun;
 my $dag;
+my $scache="/data/Clinomics/Tools/singularity";
 my $low_res;
 my $help;
 GetOptions(
@@ -89,6 +96,8 @@ if ($low_res) {
 	$time_limit = "3-10:00:00";
 	$cluster_conf = "low";
 }
+
+
 if (`hostname` =~ /cn/ or `hostname` =~ /biowulf.nih.gov/){
 	if ($dryrun){
 		my $dag_cmd = "";
@@ -100,6 +109,7 @@ if (`hostname` =~ /cn/ or `hostname` =~ /biowulf.nih.gov/){
 		export TIME=$time
 		module load snakemake/5.24.1
 		module load graphviz
+		module load singularity
 		export NGS_PIPELINE=$NGS_PIPELINE
 		export WORK_DIR=$workDir
 		export DATA_DIR=$dataDir
@@ -107,9 +117,10 @@ if (`hostname` =~ /cn/ or `hostname` =~ /biowulf.nih.gov/){
 		export HOST=\"biowulf.nih.gov\"
 		export SAMPLESHEET=$sheet_name
 		export CLUSTER_CONF=$cluster_conf
+		export SINGULARITY_CACHEDIR=$scache
 		SNAKEFILE=$NGS_PIPELINE/ngs_pipeline.rules
 		SAM_CONFIG=$sheet
-		snakemake --directory \$WORK_DIR --snakefile \$SNAKEFILE --configfile \$SAM_CONFIG --use-envmodules --dryrun -p -r --ri -R RNASeq  $dag_cmd
+		snakemake --directory \$WORK_DIR --snakefile \$SNAKEFILE --configfile \$SAM_CONFIG --use-singularity --singularity-prefix /data/Clinomics/Tools/singularity --singularity-args /data/ --use-envmodules --dryrun -p -r --ri -R RNASeq  $dag_cmd
 		rm -rf $workDir/ngs_pipeline_${sheet_name}_$NOW.csv
 		)";
 		print "$cmd\n";

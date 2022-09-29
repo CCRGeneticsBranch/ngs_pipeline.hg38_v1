@@ -1,0 +1,29 @@
+
+# vim: syntax=python tabstop=4 expandtab
+# coding: utf-8
+TARGET     += ["{subject}/{TIME}/{sample}/qc/fastqvalidator/{sample}.validated.R1.fastq.log".format(TIME=TIME, subject=SAMPLE_TO_SUBJECT[s], sample=s) for s in SAMPLES]
+
+
+##############
+#FastqValidator
+################
+rule FastqValidator:
+	input:  R=lambda wildcards: FQ[wildcards.sample],
+		R1="{subject}/{TIME}/FQ/{sample}_R1.fastq.gz",
+		R2="{subject}/{TIME}/FQ/{sample}_R2.fastq.gz",
+
+	output:
+		out1="{subject}/{TIME}/{sample}/qc/fastqvalidator/{sample}.validated.R1.fastq.log",
+		out2="{subject}/{TIME}/{sample}/qc/fastqvalidator/{sample}.validated.R2.fastq.log",
+	params:
+		rulename = "FastqValidator",
+		batch    = config[config['host']]["job_mutect"],		
+
+	container: "docker://nciccbr/ccbr_fastqvalidator:v0.1.0",
+
+	shell: """
+	set -exo pipefail	
+	fastQValidator --noeof --file {input.R1} > {output.out1}
+	fastQValidator --noeof --file {input.R2} > {output.out2}
+
+	"""

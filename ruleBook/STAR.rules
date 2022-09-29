@@ -35,8 +35,9 @@ rule STARens:
 		R1="{subject}/{TIME}/FQ/{sample}_R1.fastq.gz",
 		R2="{subject}/{TIME}/FQ/{sample}_R2.fastq.gz",
 	output:
-		"{subject}/{TIME}/{sample}/{sample}.star.bam",
-		"{subject}/{TIME}/{sample}/{sample}.star.bam.bai",
+		temp("{subject}/{TIME}/{sample}/{sample}_ENSAligned.sortedByCoord.out.bam"),
+#		"{subject}/{TIME}/{sample}/{sample}.star.bam",
+#		"{subject}/{TIME}/{sample}/{sample}.star.bam.bai",
 		"{subject}/{TIME}/{sample}/{sample}Chimeric.out.junction",
 		"{subject}/{TIME}/{sample}/{sample}_ENS_SJ.out.tab.bed.gz",
 		temp("{subject}/{TIME}/{sample}/{sample}.ENS_transcriptome.bam"),
@@ -46,6 +47,7 @@ rule STARens:
 		config['picard'],
 		config['bedtools'],
 		config['bcftools']
+#	container: 'docker://nciccbr/ncigb_star_v2.7.10a:latest'
 	params:
 		rulename = "STARens",
 		batch    = config[config['host']]['job_STAR_TPM'],
@@ -60,12 +62,39 @@ rule STARens:
 	mv -f {wildcards.sample}_ENSChimeric.out.junction {params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}Chimeric.out.junction
 	mv -f {wildcards.sample}_ENSAligned.toTranscriptome.out.bam {params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}.ENS_transcriptome.bam
 	mv -f {wildcards.sample}_ENSSJ.out.tab {params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}_ENS_SJ.out.tab
-	java -Xmx${{MEM}}g -Djava.io.tmpdir=${{LOCAL}} -jar $PICARD_JAR AddOrReplaceReadGroups VALIDATION_STRINGENCY=SILENT INPUT={wildcards.sample}_ENSAligned.sortedByCoord.out.bam OUTPUT={params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}.star.bam SORT_ORDER=coordinate RGLB={wildcards.sample} RGPU={wildcards.sample} RGPL=ILLUMINA RGSM={wildcards.sample} RGCN=khanlab
-	samtools index {params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}.star.bam
+	mv -f {wildcards.sample}_ENSAligned.sortedByCoord.out.bam {params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}_ENSAligned.sortedByCoord.out.bam
+#	java -Xmx${{MEM}}g -Djava.io.tmpdir=${{LOCAL}} -jar $PICARD_JAR AddOrReplaceReadGroups VALIDATION_STRINGENCY=SILENT INPUT={wildcards.sample}_ENSAligned.sortedByCoord.out.bam OUTPUT={params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}.star.bam SORT_ORDER=coordinate RGLB={wildcards.sample} RGPU={wildcards.sample} RGPL=ILLUMINA RGSM={wildcards.sample} RGCN=khanlab
+#	samtools index {params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}.star.bam
 	awk -F"\t" 'BEGIN{{OFS="\t"}}{{strand=($4==1)?"+":"-";annotated=($6==1)?"true":"false";if($5==0) motif="non-canonical"; if($5==1)motif="GT/AG";if($5==2)motif="CT/AC";if($5==3)motif="GC/AC";if($5==4)motif="CT/GC";if($5==5)motif="AT/AC";if($5==6)motif="GT/AT";print $1,$2,$3,"motif="motif";uniquely_mapped="$7";multi_mapped="$8";maximum_spliced_alignment_overhang="$9";annotated_junction="annotated,$7,strand}}' {params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}_ENS_SJ.out.tab |bedtools sort |bgzip > {params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}_ENS_SJ.out.tab.bed.gz
 	tabix -0 -p bed {params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}_ENS_SJ.out.tab.bed.gz
 	##########################################
 	"""
+
+##############
+#Picard-readgroups
+################
+rule Picard_AddReadGroups:
+	input:
+		bam = "{subject}/{TIME}/{sample}/{sample}_ENSAligned.sortedByCoord.out.bam",
+	output:
+		"{subject}/{TIME}/{sample}/{sample}.star.bam",
+		"{subject}/{TIME}/{sample}/{sample}.star.bam.bai",
+	envmodules:
+		config['samtools'],
+		config['picard'],
+	container: "docker://nciccbr/ccbr_picard:v0.0.1",
+	params:
+		rulename = "Picard_AddReadGroups",
+		batch    = config[config['host']]['job_STAR_TPM'],
+		home     = WORK_DIR,
+	shell: """
+	#################################################
+	java -Xmx${{MEM}}g -Djava.io.tmpdir=${{LOCAL}} -jar ${{PICARDJARPATH}}/picard.jar AddOrReplaceReadGroups VALIDATION_STRINGENCY=SILENT INPUT={input.bam} OUTPUT={params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}.star.bam SORT_ORDER=coordinate RGLB={wildcards.sample} RGPU={wildcards.sample} RGPL=ILLUMINA RGSM={wildcards.sample} RGCN=khanlab
+	java -Xmx${{MEM}}g -Djava.io.tmpdir=${{LOCAL}} -jar ${{PICARDJARPATH}}/picard.jar BuildBamIndex  I={params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}.star.bam O={params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}.star.bam.bai
+        #################################################
+	"""
+
+
 
 ######################
 # STAR_Fusion
