@@ -19,7 +19,8 @@ rule FastqValidator:
 		rulename = "FastqValidator",
 		batch    = config[config['host']]["job_mutect"],		
 
-	container: "docker://nciccbr/ccbr_fastqvalidator:v0.1.0",
+#	container: "docker://nciccbr/ccbr_fastqvalidator:v0.1.0",
+	container: "docker://nciccbr/ccrgb_qctools:v1.5",	
 
 	shell: """
 	set -exo pipefail	

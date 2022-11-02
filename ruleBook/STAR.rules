@@ -47,7 +47,7 @@ rule STARens:
 		config['picard'],
 		config['bedtools'],
 		config['bcftools']
-#	container: 'docker://nciccbr/ncigb_star_v2.7.10a:latest'
+	container: 'docker://nciccbr/ncigb_star_v2.7.10a:latest'
 	params:
 		rulename = "STARens",
 		batch    = config[config['host']]['job_STAR_TPM'],
@@ -82,15 +82,16 @@ rule Picard_AddReadGroups:
 	envmodules:
 		config['samtools'],
 		config['picard'],
-	container: "docker://nciccbr/ccbr_picard:v0.0.1",
+#	container: "docker://nciccbr/ccbr_picard:v0.0.1",
+	container: "docker://nciccbr/ccrgb_qctools:v1.5",
 	params:
 		rulename = "Picard_AddReadGroups",
 		batch    = config[config['host']]['job_STAR_TPM'],
 		home     = WORK_DIR,
 	shell: """
 	#################################################
-	java -Xmx${{MEM}}g -Djava.io.tmpdir=${{LOCAL}} -jar ${{PICARDJARPATH}}/picard.jar AddOrReplaceReadGroups VALIDATION_STRINGENCY=SILENT INPUT={input.bam} OUTPUT={params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}.star.bam SORT_ORDER=coordinate RGLB={wildcards.sample} RGPU={wildcards.sample} RGPL=ILLUMINA RGSM={wildcards.sample} RGCN=khanlab
-	java -Xmx${{MEM}}g -Djava.io.tmpdir=${{LOCAL}} -jar ${{PICARDJARPATH}}/picard.jar BuildBamIndex  I={params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}.star.bam O={params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}.star.bam.bai
+	java -Xmx${{MEM}}g -Djava.io.tmpdir=${{LOCAL}}  -jar ${{PICARDJAR}} AddOrReplaceReadGroups VALIDATION_STRINGENCY=SILENT INPUT={input.bam} OUTPUT={params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}.star.bam SORT_ORDER=coordinate RGLB={wildcards.sample} RGPU={wildcards.sample} RGPL=ILLUMINA RGSM={wildcards.sample} RGCN=khanlab
+	java -Xmx${{MEM}}g -Djava.io.tmpdir=${{LOCAL}}  -jar ${{PICARDJAR}} BuildBamIndex  I={params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}.star.bam O={params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}.star.bam.bai
         #################################################
 	"""
 

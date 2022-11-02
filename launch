@@ -92,6 +92,9 @@ my $jobid;
 my $sheet_name = basename($sheet, ".json");
 my $time_limit = "5-10:00:00";
 my $cluster_conf = "high";
+my @a = split(/[\_|\=]/,$sheet_name);
+my $pid = shift@a;
+
 if ($low_res) {
 	$time_limit = "3-10:00:00";
 	$cluster_conf = "low";
@@ -107,6 +110,7 @@ if (`hostname` =~ /cn/ or `hostname` =~ /biowulf.nih.gov/){
 		my $cmd = "(
 		export TMP=$NOW
 		export TIME=$time
+		export PROJECT_ID=$pid
 		module load snakemake/5.24.1
 		module load graphviz
 		module load singularity
@@ -127,9 +131,9 @@ if (`hostname` =~ /cn/ or `hostname` =~ /biowulf.nih.gov/){
 		exec "$cmd";
 	}
 	else{
-		`mkdir -p "$workDir/log/"`;
-		`chmod g+rw "$workDir/log"`;
-		$jobid = `sbatch -e $workDir/log/ngs-pipeline.%j.e -o $workDir/log/ngs-pipeline.%j.o --export=cluster_conf=$cluster_conf,time=$mode,ngs=$NGS_PIPELINE,dataDir=$dataDir,workDir=$workDir,sheet=$sheet,runTime=$NOW --cpus-per-task=1 --mem=2G --partition=ccr,norm --mail-type=TIME_LIMIT_90 --time=$time_limit $NGS_PIPELINE/submit_snakemake.sh`;
+		`mkdir -p "$workDir/$pid/$time/log/"`;
+		`chmod g+rw "$workDir/$pid/$time/log"`;
+		$jobid = `sbatch -e $workDir/$pid/$time/log/ngs-pipeline.%j.e -o $workDir/$pid/$time/log/ngs-pipeline.%j.o --export=cluster_conf=$cluster_conf,time=$mode,ngs=$NGS_PIPELINE,dataDir=$dataDir,workDir=$workDir,sheet=$sheet,runTime=$NOW --cpus-per-task=1 --mem=2G --partition=ccr,norm --mail-type=TIME_LIMIT_90 --time=$time_limit $NGS_PIPELINE/submit_snakemake.sh`;
 	}
 }
 elsif(`hostname` =~ /tghighmem/ or `hostname` =~ /tgcompute/ or `hostname` =~ /login01/){

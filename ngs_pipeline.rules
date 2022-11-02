@@ -333,6 +333,7 @@ onstart:
 	shell("for sub in {PATIENTS}; do rm -rf {WORK_DIR}/${{sub}}/{TIME}/successful.txt ; done")
 	shell("ssh -o StrictHostKeyChecking=no {HOST} \"echo 'ngs-pipeline version {VERSION} started on {PATIENTS} on {HOST}. Working Dir:  {WORK_DIR}' |mutt -s 'Khanlab ngs-pipeline Status' `whoami`@mail.nih.gov {MAIL} \"")
 onsuccess:
+	shell("tar -zcvf {PATIENTS}/{TIME}/log.tar.gz {PATIENTS}/{TIME}/log")
 	shell("find .snakemake/ ! -readable -prune \( -type f -user $USER -exec chmod g+r {{}} \; \) , \( -type d -user $USER -exec chmod g+rwx {{}} \; \)")
 	shell("find .snakemake/ ! -readable -prune -group $USER -exec chgrp -f {GROUP} {{}} \;")
 	print("Workflow finished, no error")
@@ -358,10 +359,10 @@ rule Khanlab_Pipeline:
 #	find {PATIENTS} log -group $USER -exec chgrp -f {params.group} {{}} \;
 #	find {PATIENTS} log \( -type f -user $USER -exec chmod g+rw {{}} \; \) , \( -type d -user $USER -exec chmod g+rwx {{}} \; \)
 	export LC_ALL=C
-	chgrp -f {params.group} {PATIENTS}
-	chgrp -f {params.group} log
-	chmod g+rw -R {PATIENTS}
-	chmod g+rw -R log
+#	chgrp -f {params.group} {PATIENTS}
+#	chgrp -f {params.group} log
+#	chmod g+rw -R {PATIENTS}
+#	chmod g+rw -R log
 
 	
 	for sub in {params.subs}
@@ -429,6 +430,7 @@ rule FASTQC:
 		"{base}/{TIME}/{sample}/qc/fastqc/{sample}_R1_fastqc.html",
 		"{base}/{TIME}/{sample}/qc/fastqc/{sample}_R2_fastqc.html"
 	envmodules: config["fastqc"]
+	container: "docker://nciccbr/ccrgb_qctools:v1.5",
 	params:
 		rulename  = "FASTQC",
 		batch     = config[config['host']]["job_fastqc"]
@@ -708,13 +710,16 @@ rule Picard_MarkDup:
 	envmodules:
 		config["picard"],
 		config["samtools_new"]
+	container: "docker://nciccbr/ccrgb_qctools:v1.5",
 	params:
 		rulename  = "Picard_MarkDup",
 		batch     = config[config['host']]["job_markdup"],
 	shell: """
 	#######################
-	java -Xmx${{MEM}}g -Djava.io.tmpdir=${{LOCAL}} -jar $PICARD_JAR MarkDuplicates AS=true M={output.metrics} I={input.bam} O={output.bam} REMOVE_DUPLICATES=false VALIDATION_STRINGENCY=SILENT
-	samtools index {output.bam}
+	java -Xmx${{MEM}}g -Djava.io.tmpdir=${{LOCAL}} -jar ${{PICARDJAR}}  MarkDuplicates AS=true M={output.metrics} I={input.bam} O={output.bam} REMOVE_DUPLICATES=false VALIDATION_STRINGENCY=SILENT
+#	samtools index {output.bam}
+	java -Xmx${{MEM}}g -Djava.io.tmpdir=${{LOCAL}} -jar ${{PICARDJAR}} BuildBamIndex  I={output.bam} O={output.index}
+
 	#######################
 	"""
 ############

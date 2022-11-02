@@ -41,6 +41,16 @@ export CLUSTER_CONF="$cluster_conf"
 NOW=$runTime
 #export TIME=$(date +"%Y%m%d%H")
 export TMP="$NOW"
+
+pid=$(echo $sheet_name | cut -d'_' -f1)
+
+if [[ ! -z $sheet_name ]]; then
+	export Patient_ID=$pid
+else
+	pid=$(echo $sheet_name | cut -d'=' -f1)
+	export Patient_ID=$pid	
+fi
+
 if [[ `hostname` =~ "cn" ]] || [ `hostname` == 'biowulf.nih.gov' ]; then
 	#module load snakemake/3.5.5.nl
 	export HOST="biowulf.nih.gov"
@@ -107,7 +117,7 @@ umask 022
 if [ $HOST   == 'biowulf.nih.gov' ]; then
 	echo "Host identified as $HOST"
 	echo "Variables are $cmd"
-	snakemake $cmd --cluster "sbatch -o log/{params.rulename}.%j.o -e log/{params.rulename}.%j.e {params.batch}" >& ngs_pipeline_${sheet_name}_${NOW}.log
+	snakemake $cmd --cluster "sbatch -o $pid/$time/log/{params.rulename}.%j.o -e $pid/$time/log/{params.rulename}.%j.e {params.batch}" >& ngs_pipeline_${sheet_name}_${NOW}.log
 elif [ $HOST == 'login01' ]; then
 	echo "Host identified as $HOST"
 	echo "Variables are $cmd"

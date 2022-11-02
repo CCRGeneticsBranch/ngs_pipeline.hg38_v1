@@ -30,12 +30,13 @@ rule HSMetrics:
 	output:
 		"{base}/{TIME}/{sample}/qc/{sample}.hsmetrics"
 	envmodules: config['picard']
+	container: "docker://nciccbr/ccrgb_qctools:v1.5",
 	params:
 		rulename = "HSMetrics",
 		reference = config["reference"],
 		batch	= config[config['host']]["job_hsMetrics"],
 	shell: """
 	#######################
-	java -Xmx${{MEM}}g -Djava.io.tmpdir=${{LOCAL}} -jar $PICARD_JAR CalculateHsMetrics BAIT_INTERVALS={input.probe_intervals} TARGET_INTERVALS={input.target_intervals} INPUT={input.bam} OUTPUT={output} METRIC_ACCUMULATION_LEVEL=ALL_READS REFERENCE_SEQUENCE={params.reference} QUIET=true  VALIDATION_STRINGENCY=SILENT
+	java -Xmx${{MEM}}g -Djava.io.tmpdir=${{LOCAL}} -jar ${{PICARDJARPATH}}/picard.jar CalculateHsMetrics BAIT_INTERVALS={input.probe_intervals} TARGET_INTERVALS={input.target_intervals} INPUT={input.bam} OUTPUT={output} METRIC_ACCUMULATION_LEVEL=ALL_READS REFERENCE_SEQUENCE={params.reference} QUIET=true  VALIDATION_STRINGENCY=SILENT
 	#######################
 	"""
