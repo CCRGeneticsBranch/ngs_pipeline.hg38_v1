@@ -1,11 +1,11 @@
 #!/bin/sh
 #PBS -N ngs-pipeline
 #
-# Author: Rajesh Patidar
 # 
 # Usually slurm can translate the PBS varibles so no need to initialize the sbatch variables.
 #set -eo pipefail
 module load snakemake/5.24.1
+module load singularity
 if [[ $time == 'd' ]]; then
 	export TIME="20160415"
 elif [[ $time == 'p' ]]; then
@@ -41,6 +41,16 @@ export CLUSTER_CONF="$cluster_conf"
 NOW=$runTime
 #export TIME=$(date +"%Y%m%d%H")
 export TMP="$NOW"
+
+pid=$(echo $sheet_name | cut -d'_' -f1)
+
+if [[ ! -z $sheet_name ]]; then
+	export Patient_ID=$pid
+else
+	pid=$(echo $sheet_name | cut -d'=' -f1)
+	export Patient_ID=$pid	
+fi
+
 if [[ `hostname` =~ "cn" ]] || [ `hostname` == 'biowulf.nih.gov' ]; then
 	#module load snakemake/3.5.5.nl
 	export HOST="biowulf.nih.gov"
@@ -60,16 +70,54 @@ if [ ! -d log ]; then
 	mkdir log
 fi
 
+
+
+# set extra singularity bindings
+#EXTRA_SINGULARITY_BINDS="-B /data/Clinomics/Tools/singularity"
+
+export SINGULARITY_CACHEDIR="/data/Clinomics/Tools/singularity"
+#mkdir -p $SINGULARITY_CACHEDIR
+
+## set and export SINGULARITY_BINDPATHS
+. /usr/local/current/singularity/app_conf/sing_binds
+
+
+function set_singularity_binds(){
+    local gpfs_links link gpfs_dirs add_comma
+
+    gpfs_links="$(ls -d /gs*)"
+    # check to see if any gs* links are broken
+    for link in $gpfs_links; do
+        if [ -e "${link}" ]; then
+            gpfs_dirs+="${add_comma:-}${link}"
+            # only prepend the comma _after_ the first iteration
+            add_comma=,
+        fi
+    done
+    SINGULARITY_BINDS="-B ${gpfs_dirs:-},/vf,/spin1,/data,/fdb,/gpfs"
+#     SINGULARITY_BINDS="-B /data/khanlab,/data/Clinomics,/data/khanlab2,/data/khanlab3"
+}
+
+
+#export SINGULARITY_BINDPATH="/data"
+
+function printbinds(){
+  set_singularity_binds
+  echo $SINGULARITY_BINDS
+}
+
+#printbinds
+
 export ACT_DIR="/Actionable/"
 SNAKEFILE=$NGS_PIPELINE/ngs_pipeline.rules
 
-cmd="--directory $WORK_DIR --snakefile $SNAKEFILE --configfile $SAM_CONFIG --jobscript $NGS_PIPELINE/scripts/jobscript.sh  --use-envmodules --jobname {params.rulename}.{jobid} --nolock --latency-wait 180 --ri -k -p  -r -j 3000 -T 1  --resources SIFT=8 --stats ngs_pipeline_${sheet_name}_${NOW}.stats -R RNASeq "
+cmd="--directory $WORK_DIR --snakefile $SNAKEFILE --configfile $SAM_CONFIG --jobscript $NGS_PIPELINE/scripts/jobscript.sh --use-singularity --singularity-prefix /data/Clinomics/Tools/singularity-prefix  --use-envmodules --jobname {params.rulename}.{jobid} --nolock --latency-wait 180 --ri -k -p  -r -j 3000 -T 1  --resources SIFT=8 --stats ngs_pipeline_${sheet_name}_${NOW}.stats -R RNASeq "
 #cmd="--directory $WORK_DIR --snakefile $SNAKEFILE --configfile $SAM_CONFIG --jobscript $NGS_PIPELINE/scripts/jobscript.sh --jobname {params.rulename}.{jobid} --nolock  --ri -k -p -T -r -j 3000 --resources DeFuse=25 --resources SIFT=8 --stats ngs_pipeline_${sheet_name}_${NOW}.stats -R RNASeq -O MergeFQ Khanlab_Pipeline RNASeq"
 umask 022
 if [ $HOST   == 'biowulf.nih.gov' ]; then
 	echo "Host identified as $HOST"
 	echo "Variables are $cmd"
-	snakemake $cmd --cluster "sbatch -o log/{params.rulename}.%j.o -e log/{params.rulename}.%j.e {params.batch}" >& ngs_pipeline_${sheet_name}_${NOW}.log
+	snakemake $cmd --cluster "sbatch -o $pid/$time/log/{params.rulename}.%j.o -e $pid/$time/log/{params.rulename}.%j.e {params.batch}" >& ngs_pipeline_${sheet_name}_${NOW}.log
 elif [ $HOST == 'login01' ]; then
 	echo "Host identified as $HOST"
 	echo "Variables are $cmd"

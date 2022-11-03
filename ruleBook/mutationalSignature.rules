@@ -50,7 +50,6 @@ rule MutationalSignature:
 ################
 #	Cosmic3 Signature
 ################
-<<<<<<< HEAD
 rule Cosmic3Signature:
 	input:
 		Files = lambda wildcards: UNION_SOM[wildcards.sample]
@@ -82,7 +81,6 @@ rule Cosmic3Signature:
 	Rscript /data/khanlab/projects/cosmic_signatures/deconstructsigs_dbs.R {params.home}/{wildcards.base}/input/output/DBS/{wildcards.sample}.DBS78.all {wildcards.sample}.DBS78
 	#######################
 	"""	
-=======
 #rule Cosmic3Signature:
 #	input:
 #		Files = lambda wildcards: UNION_SOM[wildcards.sample]
@@ -114,4 +112,3 @@ rule Cosmic3Signature:
 #	Rscript /data/khanlab/projects/cosmic_signatures/deconstructsigs_dbs.R {params.home}/{wildcards.base}/input/output/DBS/{wildcards.sample}.DBS78.all {wildcards.sample}.DBS78
 #	#######################
 #	"""	
->>>>>>> 76c8517738a5289a20415257eb033174494df061

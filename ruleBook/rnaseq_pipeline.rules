@@ -37,6 +37,7 @@ if 'RNASeq' in config:
 			# silence Defuse rule 05/11/2018
 			#TARGET_R += [subject+"/"+TIME+"/"+sample+"/fusion/defuse.filtered.txt"]
 			TARGET_R += [subject+"/"+TIME+"/"+sample+"/fusion/STAR-fusion.txt"]
+			TARGET_R += [subject+"/"+TIME+"/"+sample+"/qc/fastqvalidator/"+sample+".validated.R1.fastq.log"]
 			TARGET_R += [subject+"/"+TIME+"/"+sample+"/qc/fastqc/"+sample+"_R2_fastqc.html"]
 			TARGET_R += [subject+"/"+TIME+"/qc/"+subject+".circos.png"]
 			TARGET_R += [subject+"/"+TIME+"/"+sample+"/qc/"+sample+".star.flagstat.txt"]
@@ -101,6 +102,9 @@ rule RNASeq:
 	touch {output}
 	#######################
 	"""
+
+
+
 ############
 #       Fusioncatcher
 ############
