@@ -1,6 +1,6 @@
 ## 1. Overview
 RNA-sequencing has wide variety of applications. The power of sequencing RNA lies in the fact that the twin aspects of discovery and quantification can be combined in a single high-throughput sequencing assay called RNA-sequencing. RNA-seq can be coupled with different types of biochemical assay to analyze many other aspects of RNA biology, such as RNA–protein binding, RNA structure, or RNA–RNA interactions. This pipeline presents optimal methods for transcript quantification, fusion detection, variant analysis and QC.
-![RNA-seq analysis pipeline](rnaseq.jpeg)
+![RNA-seq analysis pipeline](RNAseq.jpeg)
 ## 2. Mapping
 **STAR** aligner is designed to specifically address many of the challenges of RNA-seq data mapping using a strategy to account for spliced alignments. STAR aligns the non-contiguous sequences directly to the reference genome. We use STAR "TwopassMode"; in the first pass, the novel junctions are detected and inserted into the genome indices. In the second pass, all reads will be re-mapped using annotated (from the GTF file) and novel (detected in the first pass) junctions. While this doubles the run time, it significantly increases sensitivity to novel splice junctions. The genome versions and the tool versions are listed [here](../resources.md). We generate two bam files from the STAR alignment.
 
