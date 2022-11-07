@@ -79,17 +79,21 @@ rule Picard_AddReadGroups:
 	output:
 		"{subject}/{TIME}/{sample}/{sample}.star.bam",
 		"{subject}/{TIME}/{sample}/{sample}.star.bam.bai",
-	envmodules:
-		config['samtools'],
-		config['picard'],
+#	envmodules:
+#		config['samtools'],
+#		config['picard'],
 #	container: "docker://nciccbr/ccbr_picard:v0.0.1",
-	container: "docker://nciccbr/ccrgb_qctools:v1.5",
+
+	container: "docker://nciccbr/ccrgb_qctools:latest",
 	params:
 		rulename = "Picard_AddReadGroups",
 		batch    = config[config['host']]['job_STAR_TPM'],
 		home     = WORK_DIR,
 	shell: """
 	#################################################
+	set -exo pipefail
+	echo $PICARDJAR
+
 	java -Xmx${{MEM}}g -Djava.io.tmpdir=${{LOCAL}}  -jar ${{PICARDJAR}} AddOrReplaceReadGroups VALIDATION_STRINGENCY=SILENT INPUT={input.bam} OUTPUT={params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}.star.bam SORT_ORDER=coordinate RGLB={wildcards.sample} RGPU={wildcards.sample} RGPL=ILLUMINA RGSM={wildcards.sample} RGCN=khanlab
 	java -Xmx${{MEM}}g -Djava.io.tmpdir=${{LOCAL}}  -jar ${{PICARDJAR}} BuildBamIndex  I={params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}.star.bam O={params.home}/{wildcards.subject}/{TIME}/{wildcards.sample}/{wildcards.sample}.star.bam.bai
         #################################################

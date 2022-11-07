@@ -710,7 +710,7 @@ rule Picard_MarkDup:
 	envmodules:
 		config["picard"],
 		config["samtools_new"]
-	container: "docker://nciccbr/ccrgb_qctools:v1.5",
+	container: "docker://nciccbr/ccrgb_qctools:latest",
 	params:
 		rulename  = "Picard_MarkDup",
 		batch     = config[config['host']]["job_markdup"],

@@ -12,13 +12,13 @@ rule RNASeqQC:
 	envmodules:
 		config["picard"],
 		config['version_R'],
-	container: "docker://nciccbr/ccrgb_qctools:v1.5",
+	container: "docker://nciccbr/ccrgb_qctools:latest",
 	params:
 		rulename  = "RNASeqQC",
 		batch     = config[config['host']]["job_RNASeqQC"],
 	shell: """
 	#######################
-	java -Xmx${{MEM}}g -Djava.io.tmpdir=${{LOCAL}} -jar ${{PICARDJARPATH}}/picard.jar CollectRnaSeqMetrics STRAND_SPECIFICITY=NONE VALIDATION_STRINGENCY=SILENT REF_FLAT={input.ref_flat} RIBOSOMAL_INTERVALS={input.rna_interval} INPUT={input.bam} OUTPUT={output.table} CHART_OUTPUT={output.pdf}
+	java -Xmx${{MEM}}g -Djava.io.tmpdir=${{LOCAL}} -jar ${{PICARDJAR}} CollectRnaSeqMetrics STRAND_SPECIFICITY=NONE VALIDATION_STRINGENCY=SILENT REF_FLAT={input.ref_flat} RIBOSOMAL_INTERVALS={input.rna_interval} INPUT={input.bam} OUTPUT={output.table} CHART_OUTPUT={output.pdf}
 	#######################
 	"""
 rule RNASeqQC1:
@@ -28,7 +28,7 @@ rule RNASeqQC1:
 	output:
 		table="{base}/{TIME}/{sample}/qc/{sample}.AlignmentSummaryMetrics.txt",
 	envmodules: config["picard"]
-	container: "docker://nciccbr/ccrgb_qctools:v1.5",
+	container: "docker://nciccbr/ccrgb_qctools:latest",
 	params:
 		rulename  ="RNASeqQC1",
 		batch     =config[config['host']]["job_RNASeqQC1"],
@@ -36,7 +36,7 @@ rule RNASeqQC1:
 #		ref       =config['Bowtie2Index'].replace('genome', 'genome.fa')
 	shell: """
 	#######################
-	java -Xmx${{MEM}}g -Djava.io.tmpdir=${{LOCAL}} -jar ${{PICARDJARPATH}}/picard.jar  CollectAlignmentSummaryMetrics VALIDATION_STRINGENCY=SILENT REFERENCE_SEQUENCE={params.ref} INPUT={input.bam} OUTPUT={output.table} ADAPTER_SEQUENCE=null
+	java -Xmx${{MEM}}g -Djava.io.tmpdir=${{LOCAL}} -jar ${{PICARDJAR}}  CollectAlignmentSummaryMetrics VALIDATION_STRINGENCY=SILENT REFERENCE_SEQUENCE={params.ref} INPUT={input.bam} OUTPUT={output.table} ADAPTER_SEQUENCE=null
 	#######################
 	"""
 rule RNASeqQC_1:

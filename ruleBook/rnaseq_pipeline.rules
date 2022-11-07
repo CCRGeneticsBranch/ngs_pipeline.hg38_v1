@@ -217,8 +217,7 @@ rule fusion_annotation:
 		"{subject}/{TIME}/Actionable/{subject}.fusion.actionable.txt"
 	output:
 		"{subject}/{TIME}/{subject}/db/{subject}.fusion.txt"
-	envmodules:
-		config["singularity"]
+	envmodules: "singularity"
 	params:
 		rulename = "fusion_annotation",
 		work_dir =  WORK_DIR,
