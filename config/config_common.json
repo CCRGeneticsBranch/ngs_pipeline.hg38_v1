@@ -3,7 +3,7 @@
 	"mail"			: "-c gangalapudiv2@nih.gov",
 	"mails"			: "-c wangc@mail.nih.gov -c chouh@nih.gov -c NCIBioinformatics_Oncogenomics@mail.nih.gov",
 	"platform"		: "Illumina",
-	"singularity"		: "singularity/3.8.5-1",
+	"singularity"		: "singularity",
 	"perl"			: "perl/5.24",
 	"samtools"		: "samtools/0.1.19",
 	"Arriba"		: "arriba/2.0.0",

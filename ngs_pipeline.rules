@@ -803,15 +803,13 @@ rule MuTect:
 	input:
 		lambda wildcards: somaticPairs[wildcards.Tumor],
 		ref=config["reference"],
-		dbsnp=config["dbsnp"],
-		cosmic=config["cosmic"],
+		af_only_genomAD=config["af_only_genomAD"],
+		mutect2_PON=config["mutect2_PON"],
 		interval=lambda wildcards: config['target_intervals'][pairedCapture[wildcards.Tumor]].replace("target","targetbp")
 	output:
 		vcf="{subject}/{TIME}/{Tumor}/calls/{Tumor}.MuTect.raw.vcf",
-		call_stats="{subject}/{TIME}/{Tumor}/qc/{Tumor}.mutect.call_stats.txt",
-		coverage="{subject}/{TIME}/{Tumor}/qc/{Tumor}.mutect.coverage.wig.txt"
 	envmodules:
-		config["MuTect"],
+#		config["MuTect"],
 		config['version_R'],
 	params:
 		rulename = "MuTect",
@@ -820,20 +818,25 @@ rule MuTect:
 		mt       = "--max_alt_allele_in_normal_fraction 0.05 --max_alt_alleles_in_normal_count 4 --min_qscore 20 -rf MappingQuality -mmq 30"
 	shell: """
 	#######################
-	java -Xmx${{MEM}}g -Djava.io.tmpdir=${{LOCAL}} -jar $MUTECT_JAR -T MuTect \
-		--reference_sequence {input.ref} \
-		--cosmic {input.cosmic} \
-		--dbsnp {input.dbsnp} \
-		--input_file:normal {input[2]} \
-		--input_file:tumor {input[0]} \
-		--intervals  {input.interval} \
-		--coverage_file {output.coverage} \
-		--out {output.call_stats} \
-		--vcf {output.vcf}.vcf \
-		{params.mt}
 
-	{params.vcforder} -i {output.vcf}.vcf -o {output.vcf}
-	rm -rf {output.vcf}.vcf
+	module load GATK/4.2.6.1
+
+	normal=$(basename {input[2]} .bwa.final.bam)	
+
+	gatk --java-options "-Xmx48g"  Mutect2  -R {input.ref} \
+	-I {input[0]} \
+	-I {input[2]} -normal $normal \
+	--intervals {input.interval} \
+	--germline-resource {input.af_only_genomAD}  \
+	--panel-of-normals  {input.mutect2_PON} \
+	-O {wildcards.Tumor}_mutect2.vcf.gz  --f1r2-tar-gz f1r2.tar.gz -independent-mates
+
+	gatk --java-options "-Xmx48g"  FilterMutectCalls -R /data/khanlab/projects/ngs_pipeline_testing/References_4.0/GRCh38/GRCh38.primary_assembly_ERCC92_ksorted.fa \
+	-V {wildcards.Tumor}_mutect2.vcf.gz  \
+	-O filtered_{wildcards.Tumor}_mutect2.vcf.gz
+
+	gunzip filtered_{wildcards.Tumor}_mutect2.vcf.gz > {output.vcf}
+
 	#######################
 	"""
 
